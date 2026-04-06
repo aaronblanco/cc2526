@@ -15,8 +15,7 @@
 ## 1. Objetivos de la práctica
 - Crear servicios interconectados usando contenedores.
 - Conocer el despliegue de servicios en contenedores usando podman, podman-compose y kubernetes.
-- **Se puede implementar con docker o podman, mi recomendación es usar podman**
-- **Utilizad únicamente el rango de puertos por encima del puerto 20 000 que se os haya asignado si estáis utilizando el servidor.**
+- **Utilizad únicamente puertos en el rango que se os ha asignado en el servidor.**
 - Implementar distintas arquitecturas de servicios en contenedores en función de los requisitos del sistema. 
 - Gestionar la escalabilidad de los servicios.
 - Gestionar réplicas y herramientas de monitoreo y balanceo de carga. 
@@ -34,7 +33,7 @@ ownCloud es una herramienta *open-source* de sincronización y compartición de 
 
 Puedes probar una demo de ownCloud [aquí](https://demo.owncloud.com).
 
-**El objetivo de esta práctica es desplegar nuestro propio servicio de ownCloud**. Con este despliegue, estaremos dando servicio a una empresa ficticia. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. De este modo, **un objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas del Cloud**.     
+**El objetivo de esta práctica es desplegar un servicio autoloajado de ownCloud**. Con este despliegue, estaremos dando servicio a nuestra organización o empresa. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. De este modo, **un objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas del Cloud**.     
 
 Para realizar este despliegue, se requiere que el estudiante utilice tecnologías Cloud basadas en contenedores utilizando los motores de contenerización y de orquestación de contenedores vistas en las sesiones anteriores: Docker/Podman, Docker/Podman-compose y Kubernetes. 
 
@@ -42,14 +41,13 @@ Para realizar este despliegue, se requiere que el estudiante utilice tecnología
 
 **Tarea obligatoria para superar la práctica**: 
 
-1.- Diseño y despliegue de un servicio Owncloud basado en contenedores según la arquitectura descrita en el Escenario 1 (Ver sección Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 microservicios: 
-- Servicio web ownCloud
-- MariaDB
+1.- Diseño y despliegue de un servicio Owncloud basado en contenedores según la arquitectura descrita en el Escenario 1 (Ver sección Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios: 
+- Servicio de alojamiento y gestión de archivos (ownCloud)
+- Sistema gestor de base de datos (MariaDB, MySQL o PostgreSQL)
 - Redis
 - LDAP (autenticación de usuarios)
 
-
-Para este despliegue puede utilizarse Docker/Podman y Docker/Podman-compose. 
+Para el despliegue debe usarse obligatoriamente podman y podman-compose. 
 
 **Tareas adicionales para conseguir la máxima puntuación en la práctica**: 
 
@@ -60,9 +58,8 @@ Para este despliegue puede utilizarse Docker/Podman y Docker/Podman-compose.
 - Redis
 - LDAP (autenticación de usuarios)
 - Replicación de, al menos, uno de los microservicios anteriores (Servidor web, LDAP o MariaDB). 
-Para este despliegue puede utilizarse Docker/Podman, Docker/Podman-compose o Kubernetes. 
 
-3.- Diseño y despliegue de la tarea 1 o 2 utilizando escalonadamente Docker/Podman, Docker/Podman-compose y Kubernetes. 
+3.- Diseño y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes. 
 
 
 ### 2.3. Implementación y despliegue de los servicios con contenedores
@@ -71,11 +68,11 @@ El objetivo de esta práctica es que el alumno sea capaz de poner en marcha un s
 
 Para esta implementación con contenedores, se sugiere realizar el despliegue de manera escalonada en cada una de las siguientes modalidades:
 
-####  Docker/Podman
+####  Podman
 
-Para este despligue es necesario desarrollar cada uno de los contenedores de forma individual para que alberguen cada uno de los servicios indicados. En esta modalidad, los contenedores tienen que ejecutarse sin un orquestador, lo que requerirá que se cree un script para poder desplegar y también bajar todos los servicios. 
+Para este despligue es necesario crear imágenes adecuadas para cada uno de los contenedores de forma individual para que alberguen cada uno de los servicios indicados. En esta modalidad, los contenedores tienen que ejecutarse sin un orquestador, lo que requerirá que se cree un script para poder desplegar y también bajar todos los servicios. 
 
-####  Docker/Podman-compose
+####  Podman-compose
 
 Para este despliegue se requiere el uso de la herramienta de composición de servicios `docker compose` o `podman compose` que provee Docker o Podman. Al igual que la anterior, se requiere que se incluyan todos los sevicios dentro del fichero de descripción de servicios a desplegar en `docker compose`.
 
