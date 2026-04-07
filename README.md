@@ -13,14 +13,12 @@
 
 
 ## Sesión 1
-
-- Servicios IaaS. Máquinas virtuales. 
-- [Managing Azure VMs: Create, deploy and add services](./session1/README.md)
+ 
+- [Servicios IaaS. Máquinas virtuales con Azure](./session1/README.md)
 
 
 ## Sesión 2
 
-- Contenedores: podman
 -  [Contenedores con podman](./session2/README.md#session-2-docker)
 
 
@@ -30,12 +28,12 @@
 
 ## Sesión 4 
 
-- [Containers orquestrators: Docker compose, Singularity compose and Kubernetes ](./session4/README.md)
+- [Orquestación de contenedores](./session4/README.md)
 
 
 ## Sesión 5
 
-- [Introucción a MongoDB](./session6/README.md)
+- [Introducción a MongoDB](./session6/README.md)
 
 ## Sesión 6
 
