@@ -1,4 +1,4 @@
-## Programación de prácticas de Cloud Computing (temporización tentativa)
+## Programación de prácticas de Cloud Computing: Servicios y Aplicaciones
 
 - Sesión 1: Máquinas virtuales en Azure
 - Sesiones 2-4: Introducción a la orquestación de contenedores: Docker compose, Singularity compose, Kubernetes 
