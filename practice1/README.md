@@ -15,10 +15,9 @@
 ## 1. Objetivos de la práctica
 - Crear servicios interconectados usando contenedores.
 - Conocer el despliegue de servicios en contenedores usando podman, podman-compose y kubernetes.
-- **Utilizad únicamente puertos en el rango que se os ha asignado en el servidor.**
 - Implementar distintas arquitecturas de servicios en contenedores en función de los requisitos del sistema. 
 - Gestionar la escalabilidad de los servicios.
-- Gestionar réplicas y herramientas de monitoreo y balanceo de carga. 
+- Gestionar réplicas y herramientas de monitorización y balanceo de carga. 
 - Implementar una arquitectura de alta disponibilidad y uso concurrente por parte de múltiples usuarios. 
 - Gestión de servicio de autenticación de usuarios. 
 - Trabajar la persistencia de datos en contenedores. 
@@ -27,59 +26,59 @@
 
 ###  2.1. Introducción
 
-El despliegue de servicios en Cloud Computing es fundamental para poner en marcha funcionalidades que permitan tener aplicaciones y software además de infrastructuras con capacidades de soporte para múltiples usuarios y con posibilidades de escalado dinámico. Aprovechar los recursos que ofrece Cloud Computing de forma flexible es la clave para el correcto diseño de servicios y microservicios interconectados desplegados en la nube (mediante contenedores). 
+La prestación de servicios en Cloud Computing requiere su despliegue en una plataforam. Este despliegue debe considerar tanto las infraestructuras como el software, no solo cubriendo los requisitos funcionales sino también los no funcionales, especialmente laa capacidad de escalabilidad dinámica.  Aprovechar los recursos que ofrece Cloud Computing de forma flexible es la clave para el correcto diseño de servicios y microservicios interconectados desplegados en la nube (mediante contenedores). 
 
-ownCloud es una herramienta *open-source* de sincronización y compartición de ficheros en la nube. Una especie de Google Drive o Dropbox de código abierto, con un [gran soporte entre la comunidad](https://owncloud.com/getting-started/).
+OwnCloud es una herramienta *open-source* de sincronización y compartición de ficheros en la nube. Es una alternativa en código abierto a servicios privativos como Google Drive o Dropbox, con un [gran soporte entre la comunidad](https://owncloud.com/getting-started/).
 
-Puedes probar una demo de ownCloud [aquí](https://demo.owncloud.com).
+Existe desplegada una versión de demostración de [OwnCloud](https://demo.owncloud.com).
 
-**El objetivo de esta práctica es desplegar un servicio autoloajado de ownCloud**. Con este despliegue, estaremos dando servicio a nuestra organización o empresa. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. De este modo, **un objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas del Cloud**.     
+**El objetivo de esta práctica es desplegar un servicio autoloajado de ownCloud**. Con este despliegue, estaremos dando servicio a nuestra organización o empresa. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. Un **objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas de la nube**.     
 
 Para realizar este despliegue, se requiere que el estudiante utilice tecnologías Cloud basadas en contenedores utilizando los motores de contenerización y de orquestación de contenedores vistas en las sesiones anteriores: Docker/Podman, Docker/Podman-compose y Kubernetes. 
 
-### 2.2. Tareas propuestas
+### 2.2. Tareas a realizar
 
 **Tarea obligatoria para superar la práctica**: 
 
-1.- Diseño y despliegue de un servicio Owncloud basado en contenedores según la arquitectura descrita en el Escenario 1 (Ver sección Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios: 
+1.- Diseño y despliegue de un servicio OwnCloud basado en contenedores según la arquitectura descrita en el Escenario 1 (Ver sección Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios: 
 - Servicio de alojamiento y gestión de archivos (ownCloud)
-- Sistema gestor de base de datos (MariaDB, MySQL o PostgreSQL)
+- Sistema gestor de base de datos (SGBD): MariaDB, MySQL o PostgreSQL
 - Redis
 - LDAP (autenticación de usuarios)
 
-Para el despliegue debe usarse obligatoriamente podman y podman-compose. 
+Para el despliegue debe usarse obligatoriamente podman y podman-compose. El despliegue debe hacerse en el servidor `docker.ugr.es`. Cada alumno debe utilizar puertos incluidos en el rango que se le asignó.
 
 **Tareas adicionales para conseguir la máxima puntuación en la práctica**: 
 
-2.- Diseño y despliegue de un servicio Owncloud basado en contenedores, con alta disponibilidad e inspirado en la arquitectura descrita en el Escenario 2. En particular, se requiere que este servicio incluya: 
-- Balanceo de carga con HAProxy u otra herramienta
-- Servicio web ownCloud
-- MariaDB
+2.- Diseño y despliegue de un servicio OwnCloud basado en contenedores, con alta disponibilidad e inspirado en la arquitectura descrita en el Escenario 2. En particular, se requiere que este servicio incluya: 
+- Balanceo de carga con HAProxy (u otra herramienta)
+- Servicio web OwnCloud
+- SBGD
 - Redis
 - LDAP (autenticación de usuarios)
-- Replicación de, al menos, uno de los microservicios anteriores (Servidor web, LDAP o MariaDB). 
+- Replicación de, al menos, uno de los microservicios anteriores (Servidor web, LDAP o SGBD). 
 
 3.- Diseño y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes. 
 
 
 ### 2.3. Implementación y despliegue de los servicios con contenedores
 
-El objetivo de esta práctica es que el alumno sea capaz de poner en marcha un sistema ownCloud en la nube con los servicios citados anteriormente.
+El objetivo de esta práctica es que el alumno sea capaz de poner en marcha un sistema OwnCloud en la nube, basado en los servicios citados anteriormente.
 
 Para esta implementación con contenedores, se sugiere realizar el despliegue de manera escalonada en cada una de las siguientes modalidades:
 
 ####  Podman
 
-Para este despligue es necesario crear imágenes adecuadas para cada uno de los contenedores de forma individual para que alberguen cada uno de los servicios indicados. En esta modalidad, los contenedores tienen que ejecutarse sin un orquestador, lo que requerirá que se cree un script para poder desplegar y también bajar todos los servicios. 
+Para este despligue es necesario crear imágenes adecuadas para cada uno de los contenedores de forma individual para que alberguen cada uno de los servicios indicados. En esta modalidad, los contenedores tienen que ejecutarse individualmente, lo que requerirá que se cree un script para poder desplegar y también bajar todos los servicios. 
 
 ####  Podman-compose
 
-Para este despliegue se requiere el uso de la herramienta de composición de servicios `docker compose` o `podman compose` que provee Docker o Podman. Al igual que la anterior, se requiere que se incluyan todos los sevicios dentro del fichero de descripción de servicios a desplegar en `docker compose`.
+Para este despliegue se requiere el uso de la herramienta de composición de servicios `podman compose` que provee Docker o Podman. Al igual que la anterior, se requiere que se incluyan todos los sevicios dentro del fichero de descripción de servicios a desplegar en `docker compose`.
 
 ####  Kubernetes
 
 Este tipo de despliegue permite automatizar gran parte de las tareas y del ciclo de vida de los servicios.
-El servicio de HAProxy puede se sustituido por el equivalente en Kubernetes, que permite balancear la carga entre los diferentes contenedores de cada `namespace`. 
+El servicio de HAProxy puede sustituirse por el equivalente en Kubernetes, que permite balancear la carga entre los diferentes contenedores de cada `namespace`. 
 
 ### 2.4. Tipos de arquitecturas de cloud propuestas
 
@@ -87,7 +86,7 @@ En esta sección se describen dos posibles arquitecturas de cloud para el despli
 
 #### Escenario 1: Pequeña empresa o departamento - grupo de usuarios pequeño
 
-Este escenario sería el más apropiado para este tipo de requisitos: 
+Este escenario sería el más apropiado para cuando se den las siguientes restricciones: 
 
 - Número de usuarios: Hasta 150
 - Almacenamiento: 100 GB - 10TB
@@ -104,7 +103,7 @@ Una máquina ejecutando la aplicación: la web, el servidor de BD y almacenamien
 
 Que incluye los siguientes 4 servicios: 
 - Servicio web owncloud
-- MariaDB
+- SGBD
 - Redis
 - LDAP (autenticación de usuarios)
 
@@ -114,7 +113,7 @@ No.
 
 ##### Base de datos
 
-MariaDB
+Sistema relacional
 
 
 ##### Autenticación
@@ -133,7 +132,7 @@ Este escenario sería el más apropiado para un volumen de usuarios y demás cri
 - Almacenamiento: Hasta 200TB.
 - Disponibilidad: 
     * Cada componente es redundante y el sistema es robusto a caídas de componentes sin que se produzca interrupción del servicio
-    * Backups sin interrupción del servicio
+    * Copias de seguridad (backups) sin interrupción del servicio
 
 
 ##### Arquitectura cloud propuesta
@@ -154,7 +153,7 @@ Este diagrama representaría la arquitectura propuesta:
 En un escenario simulado, como el que nos ocupa, bastará con implementar los siguientes servicios: 
 - Balanceo de carga con HAProxy u otra herramienta
 - Servicio web owncloud
-- MariaDB
+- SGBD
 - Redis
 - LDAP
 - Replicación de servicio de, al menos, uno de los servicios anteriores. 
@@ -165,7 +164,7 @@ Un servicio HAProxy ejecutándose en un servidor dedicado que recibe todas las p
 
 ##### Base de datos
 
-En un entorno real, se construiría un cluster de servicios MariaDB [con répicas](https://mariadb.com/kb/en/setting-up-replication/) y consideraríamos, además, un [monitor de configuración para MariaDB](https://mariadb.com/kb/en/mariadb-maxscale-22-automatic-failover-with-mariadb-monitor) para prevenir comportamiento ante caída de servicio. En nuestro caso, sin embargo, bastará con replicar uno de los servicios anteriores (MariaDB u otro servicio). 
+En un entorno real, se construiría un cluster de servicios SGBD [con répicas](https://mariadb.com/kb/en/setting-up-replication/) y consideraríamos, además, un [monitor de configuración para MariaDB](https://mariadb.com/kb/en/mariadb-maxscale-22-automatic-failover-with-mariadb-monitor) para prevenir comportamiento ante caída de servicio. En nuestro caso, sin embargo, bastará con replicar uno de los servicios anteriores (MariaDB u otro servicio). 
 
 ##### Autenticación
 
@@ -173,13 +172,15 @@ Autenticación de usuario a través de uno o varios servidores LDAP.
 
 ##### Almacenamiento
 
-Para el almacenamiento en este tipo de sistemas exploraríamos opciones como IBM Elastic Storage, Amazon S3 o soluciones NetApp, por ejemplo. En cualquier caso, no se requerirá el uso de este tipo de servicios para la implementación de un prototipo en el escenario 2 y bastará con que utilicéis almacenamiento local. 
+Para el almacenamiento en este tipo de sistemas exploraríamos opciones como IBM Elastic Storage, Amazon S3 o soluciones NetApp, por ejemplo. En cualquier caso, no se requerirá el uso de este tipo de servicios para la implementación de un prototipo en el escenario 2 y bastará con que utilicéis almacenamiento local (bind mounts o volúmenes).
+
+Alternativamente, podéis considerar el uso de Rustfs o SeaweedFS.
 
 ## 3. Características de cada servicio para despliegue con contenedores 
 
 ## 3.1. Despliegue y gestión de servicios de autenticación de usuarios con LDAP
 
-LDAP es un protocolo ligero para acceder a servidores de directorios. Vale, ¿qué es un servidor de directorios? Es una base de datos jerárquica orientada a objetos.
+LDAP es un protocolo ligero para acceder a servidores de directorios. ¿Qué es un servidor de directorios? Es una base de datos jerárquica orientada a objetos.
 
 El paquete openldap-client instala herramientas que se utilizan para añadir, modificar y eliminar entradas en un directorio LDAP. Estas herramientas incluyen las siguientes:
 
@@ -212,7 +213,7 @@ Los datos mismos en un sistema LDAP se almacenan principalmente en elementos lla
 
 ```
 ...
-home: /home/carlos
+home: /home/manu
 ...
 ```
 
@@ -404,12 +405,12 @@ Vemos que el objeto ```uid=carlos``` ha sido creado y que está asociado a la ra
 
 Después de añadir un nuevo usuario, echa abajo el contenedor correspondiente con 
 ```
-docker rm -f <id contenedor>
+podman rm -f <id contenedor>
 ````
 
 Y vuelve a lanzarlo con 
 ```
-docker run -d -p 20389:389 --name openldap-server -t osixia/openldap:1.5.0 
+podman run -d -p 20389:389 --name openldap-server -t osixia/openldap:1.5.0 
 ```
 
 Lanza de nuevo la consulta: 
@@ -427,22 +428,17 @@ sudo mkdir -p ./data/slapd/config
 sudo mkdir ./data/slapd/database
 ```
 
-Y concedemos los permisos adecuados sobre estas carpetas. En linux, hacemos un nuevo grupo docker y vinculamos nuestro usuario a este grupo. Las carpetas de datos serán propiedad de nuestro usuario y del grupo docker: 
+Y concedemos los permisos adecuados sobre estas carpetas. En linux, las asociamos al usuario con que se ejecuten los contenedores. Como sólo diponemos de uno (el nuestro propio), pues a ese: 
 ```
-sudo usermod -aG docker $USER
-newgrp docker
+
 sudo chmod 775 -R /path-que-quieras/data/slapd
-sudo chown -R $USER:docker /path-que-quieras/data/slapd
+sudo chown -R $USER:$USER /path-que-quieras/data/slapd
 ```
-En MacOS: 
-```
-sudo chmod -R 775 /path-que-quieras/data/slapd
-sudo chown -R $USER /path-que-quieras/data/slapd
-```
+
 Ahora, montamos estas carpetas como volúmenes de datos permanentes al lanzar el contenedor **(reemplazar los puertos con unos que se os haya asignado)**: 
 
 ```
-docker run -p 20389:389 -p 20636:636 --volume /path-completo-hasta/data/slapd/database:/var/lib/ldap --volume /path-completo-hasta/data/slapd/config:/etc/ldap/slapd.d --name openldap-server  --detach osixia/openldap:1.5.0 
+podman run -p 20389:389 -p 20636:636 --volume /path-completo-hasta/data/slapd/database:/var/lib/ldap --volume /path-completo-hasta/data/slapd/config:/etc/ldap/slapd.d --name openldap-server  --detach osixia/openldap:1.5.0 
 ```
 
 Si tienes un firewall activo, debes permitir que los puertos 20389 y 20636 estén accesibles para que LDAP escuche las peticiones de servicio a través de ellos con el siguiente código. Si no tienes un firewall activo, omite este paso: 
@@ -627,16 +623,16 @@ El despliegue de un servicio ownCloud requiere desplegar un frontend con la apli
 **(reemplazar el puerto 20080 con uno que se os haya asignado)**
 
 ```
-docker pull owncloud
-docker run -d -p 20080:80 owncloud:latest
+podman pull owncloud
+podman run -d -p 20080:80 owncloud:latest
 ```
 
 ### Despliegue de contenedor MariaDB
 
 [MariaDB Server](https://hub.docker.com/_/mariadb) es un servicio de altas prestaciones para implementar bases de datos relacionales que proviene de MySQL. Para desplegar un contenedor con este servicio, proceder así: 
 ```
-docker pull mariadb
-docker run --detach --name mariadb --env MARIADB_USER=<nombre_usuario> --env MARIADB_PASSWORD=<contraseña> --env MARIADB_ROOT_PASSWORD=<contraseña-root>  mariadb:latest
+podman pull mariadb
+podman run --detach --name mariadb --env MARIADB_USER=<nombre_usuario> --env MARIADB_PASSWORD=<contraseña> --env MARIADB_ROOT_PASSWORD=<contraseña-root>  mariadb:latest
 ````
 
 Sin embargo, con este despliegue de MariaDB, [**¿Dónde se almacenan los datos de MariaDB?**](https://github.com/docker-library/docs/blob/master/mariadb/README.md#where-to-store-data)
@@ -645,7 +641,7 @@ Para que el almacenamiento de los datos en MariaDB sea **persistente**, es neces
 
 ```
 $ mkdir <path_al_directorio_deseado>/MariaDB_data
-$ docker run --detach --name mariadb -v <path_al_directorio_deseado>:/var/lib/mysql --env MARIADB_DATABASE=test --env MARIADB_USER=<nombre_usuario> --env MARIADB_PASSWORD=<contraseña> --env MARIADB_ROOT_PASSWORD=<contraseña_root>  mariadb:latest
+$ podman run --detach --name mariadb -v <path_al_directorio_deseado>:/var/lib/mysql --env MARIADB_DATABASE=test --env MARIADB_USER=<nombre_usuario> --env MARIADB_PASSWORD=<contraseña> --env MARIADB_ROOT_PASSWORD=<contraseña_root>  mariadb:latest
 ```
 
 ### Integración de LDAP en Owncloud
@@ -681,17 +677,17 @@ en el que definimos un front-end ```http-in``` y un backend ```testing```. Este 
 Siguiendo el ejemplo anterior, supongamos que tenemos tres répicas de una aplicación web dando servicio. A modo de ejemplo, utilizaremos la imagen de Docker ```jmalloc/echo-server``` para servir una aplicación web muy sencilla que simplemente responde con los detalles de la petición HTTP que recibe. Creamos una red puente de Docker y desplegamos tres de estos servicios con Docker: 
 
 ```
-$ sudo docker network create --driver=bridge mynetwork
-$ sudo docker run -d \
+$ podman network create --driver=bridge mynetwork
+$ podman run -d \
    --net mynetwork --name web1 jmalloc/echo-server:latest
    
-$ sudo docker run -d \
+$ podman run -d \
    --net mynetwork --name web2 jmalloc/echo-server:latest
    
-$ sudo docker run -d \
+$ podman run -d \
    --net mynetwork --name web3 jmalloc/echo-server:latest
 
-$ sudo docker ps -a 
+$ podman ps -a 
 
 CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS                     PORTS                                                                                                                                  NAMES
 e54dc1e8a748   jmalloc/echo-server:latest            "/bin/echo-server"       27 seconds ago   Up 26 seconds              8080/tcp                                                                                                                               web3
@@ -740,7 +736,7 @@ Algunos detalles sobre este fichero de configuración:
 Ahora, creamos y ejecutamos un contenedor con HAProxy **(reemplazar los puertos con unos que se os haya asignado)**: 
 
 ```
-$ sudo docker run -d \
+$ podman run -d \
    --name haproxy \
    --net mynetwork \
    -v $(pwd):/usr/local/etc/haproxy:ro \
@@ -749,7 +745,7 @@ $ sudo docker run -d \
    haproxytech/haproxy-alpine:2.4
 ```
 ```
-$ sudo docker ps 
+$ podman ps 
 CONTAINER ID   IMAGE                                 COMMAND                  CREATED              STATUS                PORTS                                                                                                                                  NAMES
 d9c3e714b7fb   haproxytech/haproxy-alpine:2.4        "/docker-entrypoint.…"   6 seconds ago        Up 5 seconds          0.0.0.0:80->80/tcp, 0.0.0.0:8404->8404/tcp                                                                                             haproxy
 bba173ccae97   jmalloc/echo-server:latest            "/bin/echo-server"       52 seconds ago       Up 52 seconds         8080/tcp                                                                                                                               web3
@@ -780,18 +776,18 @@ El código ```Request served by 5ca725df4f1f```hace referencia al contenedor que
 
 Puedes consultar las estadísticas de monitoreo de los tres servicios abriendo con tu navegador las estadísticas ofrecidas por HAProxy en (http://localhost:8404/). 
 
-Puedes hacer cambios en el fichero de configuración haproxy.cfg y relanzar el servidor HAProxy sin afectar al servicio utilizando ```docker kill```: 
+Puedes hacer cambios en el fichero de configuración haproxy.cfg y relanzar el servidor HAProxy sin afectar al servicio utilizando ```podman kill```: 
 ```
-$ docker kill -s HUP haproxy
+$ podman kill -s HUP haproxy
 ````
 
 Para eliminar los contenedores y la red, procede así: 
 ```
-$ docker stop web1 && docker rm web1
-$ docker stop web2 && docker rm web2
-$ docker stop web3 && docker rm web3
-$ docker stop haproxy && docker rm haproxy
-$ docker network rm mynetwork
+$ podman stop web1 && docker rm web1
+$ podman stop web2 && docker rm web2
+$ podman stop web3 && docker rm web3
+$ podman stop haproxy && docker rm haproxy
+$ podman network rm mynetwork
 ```
 
 En esta referencia puedes encontrar los típicos problemas que se presentan al desplegar HAProxy y cómo resolverlos: [Troubleshooting HAProxy Errors](https://www.digitalocean.com/community/tutorial_series/common-haproxy-errors)
@@ -822,7 +818,7 @@ La **documentación** de la entrega debe contener:
 
 ## Plazos de entrega
 
-Plazo de entrega en PRADO: Hasta el 14 de Marzo de 2025 a las 23:59 hrs.
+Plazo de entrega en PRADO: Hasta el 30 de abril de 2026 a las 23:59 hrs.
 
 ## Defensa de la práctica
 
