@@ -26,19 +26,19 @@
 
 ###  2.1. Introducción
 
-La prestación de servicios en Cloud Computing requiere su despliegue en una plataforam. Este despliegue debe considerar tanto las infraestructuras como el software, no solo cubriendo los requisitos funcionales sino también los no funcionales, especialmente laa capacidad de escalabilidad dinámica.  Aprovechar los recursos que ofrece Cloud Computing de forma flexible es la clave para el correcto diseño de servicios y microservicios interconectados desplegados en la nube (mediante contenedores). 
+La prestación de servicios en Cloud Computing requiere su despliegue en una plataforam. Este despliegue debe considerar tanto las infraestructuras como el software, no solo cubriendo los requisitos funcionales sino también los no funcionales, especialmente laa capacidad de escalabilidad dinámica.  Aprovechar los recursos que ofrece Cloud Computing de forma flexible es la clave para el correcto diseño de servicios interconectados desplegados en la nube (mediante contenedores). 
 
-OwnCloud es una herramienta *open-source* de sincronización y compartición de ficheros en la nube. Es una alternativa en código abierto a servicios privativos como Google Drive o Dropbox, con un [gran soporte entre la comunidad](https://owncloud.com/getting-started/).
+OwnCloud es una herramienta *open-source* de sincronización y compartición de ficheros en la nube. Es una alternativa en código abierto a servicios privativos como Google Drive o Dropbox, con [gran soporte entre la comunidad](https://owncloud.com/getting-started/).
 
 Existe desplegada una versión de demostración de [OwnCloud](https://demo.owncloud.com).
 
-**El objetivo de esta práctica es desplegar un servicio autoloajado de ownCloud**. Con este despliegue, estaremos dando servicio a nuestra organización o empresa. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. Un **objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas de la nube**.     
+**El objetivo de esta práctica es desplegar un servicio autoloajado de OwnCloud**. Con este despliegue, estaremos dando servicio a nuestra organización o empresa. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. Un **objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas de la nube**.     
 
 Para realizar este despliegue, se requiere que el estudiante utilice tecnologías Cloud basadas en contenedores utilizando los motores de contenerización y de orquestación de contenedores vistas en las sesiones anteriores: Docker/Podman, Docker/Podman-compose y Kubernetes. 
 
 ### 2.2. Tareas a realizar
 
-**Tarea obligatoria para superar la práctica**: 
+**Tarea mínima obligatoria para superar la práctica**: 
 
 1.- Diseño y despliegue de un servicio OwnCloud basado en contenedores según la arquitectura descrita en el Escenario 1 (Ver sección Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios: 
 - Servicio de alojamiento y gestión de archivos (ownCloud)
@@ -46,17 +46,17 @@ Para realizar este despliegue, se requiere que el estudiante utilice tecnología
 - Redis
 - LDAP (autenticación de usuarios)
 
-Para el despliegue debe usarse obligatoriamente podman y podman-compose. El despliegue debe hacerse en el servidor `docker.ugr.es`. Cada alumno debe utilizar puertos incluidos en el rango que se le asignó.
+Para el despliegue debe usarse **obligatoriamente** podman y podman-compose. El despliegue debe hacerse en el servidor `docker.ugr.es`. Cada alumno debe utilizar puertos incluidos en el rango que se le asignó (y que están registrados en Prado).
 
 **Tareas adicionales para conseguir la máxima puntuación en la práctica**: 
 
 2.- Diseño y despliegue de un servicio OwnCloud basado en contenedores, con alta disponibilidad e inspirado en la arquitectura descrita en el Escenario 2. En particular, se requiere que este servicio incluya: 
 - Balanceo de carga con HAProxy (u otra herramienta)
 - Servicio web OwnCloud
-- SBGD
+- SGBD
 - Redis
 - LDAP (autenticación de usuarios)
-- Replicación de, al menos, uno de los microservicios anteriores (Servidor web, LDAP o SGBD). 
+- Replicación de, al menos, uno de los microservicios anteriores (servidor web, LDAP o SGBD). 
 
 3.- Diseño y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes. 
 
@@ -82,7 +82,7 @@ El servicio de HAProxy puede sustituirse por el equivalente en Kubernetes, que p
 
 ### 2.4. Tipos de arquitecturas de cloud propuestas
 
-En esta sección se describen dos posibles arquitecturas de cloud para el despliegue del servicio en función del tamaño de la empresa y de los recursos TIC disponibles. Tomado de la web https://doc.owncloud.com/server/next/admin_manual/installation/deployment_recommendations.html . 
+En esta sección se describen dos posibles arquitecturas de cloud para el despliegue del servicio en función del tamaño de la empresa y de los recursos TIC disponibles. Las indicaciones están tomadas de https://doc.owncloud.com/server/next/admin_manual/installation/deployment_recommendations.html . 
 
 #### Escenario 1: Pequeña empresa o departamento - grupo de usuarios pequeño
 
@@ -92,7 +92,7 @@ Este escenario sería el más apropiado para cuando se den las siguientes restri
 - Almacenamiento: 100 GB - 10TB
 - Disponibilidad: 
     * Fallo de un elemento conlleva la interrupción del servicio
-    * Esquema de backups: nocturno con interrupción momentánea del servicio
+    * Esquema de copias de seguridad (backups): nocturno con interrupción momentánea del servicio
 
 
 ##### Arquitectura cloud propuesta
@@ -104,7 +104,7 @@ Una máquina ejecutando la aplicación: la web, el servidor de BD y almacenamien
 Que incluye los siguientes 4 servicios: 
 - Servicio web owncloud
 - SGBD
-- Redis
+- [Redis](https://redis.io/)
 - LDAP (autenticación de usuarios)
 
 ##### Balanceo de carga
@@ -113,7 +113,7 @@ No.
 
 ##### Base de datos
 
-Sistema relacional
+Sistema relacional.
 
 
 ##### Autenticación
@@ -151,7 +151,7 @@ Este diagrama representaría la arquitectura propuesta:
 ![Arquitectura propuesta para una mediana empresa](https://doc.owncloud.com/server/next/admin_manual/_images/installation/deprecs-2.png)
 
 En un escenario simulado, como el que nos ocupa, bastará con implementar los siguientes servicios: 
-- Balanceo de carga con HAProxy u otra herramienta
+- Balanceo de carga con HAProxy (u otra herramienta)
 - Servicio web owncloud
 - SGBD
 - Redis
@@ -164,7 +164,7 @@ Un servicio HAProxy ejecutándose en un servidor dedicado que recibe todas las p
 
 ##### Base de datos
 
-En un entorno real, se construiría un cluster de servicios SGBD [con répicas](https://mariadb.com/kb/en/setting-up-replication/) y consideraríamos, además, un [monitor de configuración para MariaDB](https://mariadb.com/kb/en/mariadb-maxscale-22-automatic-failover-with-mariadb-monitor) para prevenir comportamiento ante caída de servicio. En nuestro caso, sin embargo, bastará con replicar uno de los servicios anteriores (MariaDB u otro servicio). 
+En un entorno real, se construiría un cluster de servicios SGBD [con réplicas](https://mariadb.com/kb/en/setting-up-replication/) y consideraríamos, además, un [monitor de configuración para el SGBD](https://mariadb.com/kb/en/mariadb-maxscale-22-automatic-failover-with-mariadb-monitor) para prevenir comportamiento ante caídas del servicio. En nuestro caso, sin embargo, bastará con replicar uno de los servicios anteriores. 
 
 ##### Autenticación
 
@@ -174,13 +174,13 @@ Autenticación de usuario a través de uno o varios servidores LDAP.
 
 Para el almacenamiento en este tipo de sistemas exploraríamos opciones como IBM Elastic Storage, Amazon S3 o soluciones NetApp, por ejemplo. En cualquier caso, no se requerirá el uso de este tipo de servicios para la implementación de un prototipo en el escenario 2 y bastará con que utilicéis almacenamiento local (bind mounts o volúmenes).
 
-Alternativamente, podéis considerar el uso de Rustfs o SeaweedFS.
+Alternativamente, podéis considerar el uso de [Rustfs](https://rustfs.com/) o [SeaweedFS](https://seaweedfs.com/).
 
 ## 3. Características de cada servicio para despliegue con contenedores 
 
 ## 3.1. Despliegue y gestión de servicios de autenticación de usuarios con LDAP
 
-LDAP es un protocolo ligero para acceder a servidores de directorios. ¿Qué es un servidor de directorios? Es una base de datos jerárquica orientada a objetos.
+[LDAP](https://es.wikipedia.org/wiki/Protocolo_ligero_de_acceso_a_directorios) es un protocolo ligero para acceder a servidores de directorios. ¿Qué es un servidor de directorios? Es una base de datos jerárquica orientada a objetos.
 
 El paquete openldap-client instala herramientas que se utilizan para añadir, modificar y eliminar entradas en un directorio LDAP. Estas herramientas incluyen las siguientes:
 
@@ -213,7 +213,7 @@ Los datos mismos en un sistema LDAP se almacenan principalmente en elementos lla
 
 ```
 ...
-home: /home/manu
+home: /home/carlos
 ...
 ```
 
@@ -435,13 +435,13 @@ sudo chmod 775 -R /path-que-quieras/data/slapd
 sudo chown -R $USER:$USER /path-que-quieras/data/slapd
 ```
 
-Ahora, montamos estas carpetas como volúmenes de datos permanentes al lanzar el contenedor **(reemplazar los puertos con unos que se os haya asignado)**: 
+Ahora, montamos estas carpetas como volúmenes de datos permanentes al lanzar el contenedor **(reemplazar los puertos con algunos del rango que se os haya asignado)**: 
 
 ```
 podman run -p 20389:389 -p 20636:636 --volume /path-completo-hasta/data/slapd/database:/var/lib/ldap --volume /path-completo-hasta/data/slapd/config:/etc/ldap/slapd.d --name openldap-server  --detach osixia/openldap:1.5.0 
 ```
 
-Si tienes un firewall activo, debes permitir que los puertos 20389 y 20636 estén accesibles para que LDAP escuche las peticiones de servicio a través de ellos con el siguiente código. Si no tienes un firewall activo, omite este paso: 
+Si tienes un firewall activo, debes permitir que los puertos 20389 y 20636 estén accesibles para que LDAP escuche las peticiones de servicio a través de ellos con el siguiente código. Si no tienes un firewall activo, omite este paso (Ése es el caso en `doker.ugr.es`, donde no tenéis que gestionar el firewall): 
 
 ```
 ##Si usas UFW
@@ -453,7 +453,7 @@ sudo firewall-cmd --add-port=20636/tcp --permanent
 sudo firewall-cmd --reload
 ```
 
-Ahora, vuelve a crear el usuario que creaste antes. En mi caso, creo dos usuarios: carlos y billy (hago un fichero billy.ldif con igual estructura que la que se mostró para carlos.ldif pero con otros datos de usuario): 
+Ahora, vuelve a crear el usuario que creaste antes. En el ejemplo, creoamos dos usuarios: carlos y billy (hacemos un fichero billy.ldif con igual estructura que la que se mostró para carlos.ldif pero con otros datos de usuario): 
 ```
 ldapadd -x -w admin -D "cn=admin,dc=example,dc=org" -f billy.ldif
 ldapadd -x -w admin -D "cn=admin,dc=example,dc=org" -f carlos.ldif
@@ -462,9 +462,9 @@ Compruebo que los usuarios se han creado bien:
 ```
 docker exec openldap-server ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D "cn=admin,dc=example,dc=org" -w admin
 ```
-echo abajo el servicio openldap con docker rm -f <containerID>, lo vuelvo a levantar y compruebo con la consulta que los usuarios siguen existiendo:
+echamos abajo el servicio openldap con podman rm -f <containerID>, lo vuelvo a levantar y compruebo con la consulta que los usuarios siguen existiendo:
 ```
-docker exec openldap-server ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D "cn=admin,dc=example,dc=org" -w admin
+podman exec openldap-server ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D "cn=admin,dc=example,dc=org" -w admin
 ```
 Ahora sí, los datos persisten más allá del ámbito del contenedor. 
 
@@ -475,7 +475,7 @@ Para cambiar el password del usuario ```carlos```creado anteriormente:
 ```
 ldappasswd -s <new_user_password> -w admin -D "cn=admin,dc=example,dc=org" -x "uid=carlos,dc=example,dc=org"
 ```
-Revisa: https://www.centos.org/docs/5/html/CDS/cli/8.0/Configuration_Command_File_Reference-Command_Line_Utilities-ldappasswd.html  para más información sobre el comando.
+Revisa: https://www.centos.org/docs/5/html/CDS/cli/8.0/Configuration_Command_File_Reference-Command_Line_Utilities-ldappasswd.html  para más información sobre el mandato.
 
 Ahora prueba:
 
@@ -499,7 +499,7 @@ ldapmodify [ options ] -f LDIFfile
 
 LDIFfile es, de nuevo, un archivo de texto LDIF que contiene nuevas entradas o actualizaciones a entradas existentes en el directorio LDAP.
 
-Por ejemplo, he creado el siguiente fichero LDIF ``carlos_modify.ldif``` para cambiar el atributo loginShell del usuario ```carlos```.
+Por ejemplo, hemos creado el siguiente fichero LDIF ``carlos_modify.ldif``` para cambiar el atributo loginShell del usuario ```carlos```.
 
 ```
 dn: cn=carlos,dc=example,dc=org
@@ -616,7 +616,7 @@ Cualquier combinación de  ```ou```, ```dc```, ... está permitida para buscar d
 
 ## 3.2. Despliegue de ownCloud
 
-El despliegue de un servicio ownCloud requiere desplegar un frontend con la aplicación web y un backend para la Base de Datos (en mySQL o MariaDB, en nuestro caso, optaremos por MariaDB) y la gestión de memoria caché con Redis para mejorar el rendimiento del sistema. Ya conocéis cómo desplegar Redis (se trabajó en la sesión 4), así que nos centraremos en esta sección en cómo desplegar ownCloud y MariaDB. Las instrucciones siguientes despliegan los contenedores de forma individual con docker - podéis tomarlos como punto de partida para hacer despliegues con orquestadores de contenedores. 
+El despliegue de un servicio ownCloud requiere desplegar un contenedor con la aplicación web y otro para el SGBD (MariaDB, en el ejemplo) y la gestión de memoria caché con Redis para mejorar el rendimiento del sistema. Nos centraremos en esta sección en cómo desplegar ownCloud y MariaDB. Las instrucciones siguientes despliegan los contenedores de forma individual con docker - podéis tomarlos como punto de partida para hacer despliegues con orquestadores de contenedores. 
 
 ### Despliegue de contenedor ownCloud
 
@@ -653,7 +653,7 @@ Y en esta web se explica con detenimiento el valor de los distintos campos en la
 
 ## 3.3. Despliegue de HAProxy
 
-HAProxy es un [proxy inverso](https://www.cloudflare.com/es-es/learning/cdn/glossary/reverse-proxy/) gratuito que balanceo de carga y alta disponibilidad para aplicaciones basadas en HTTP y TCP. En los últimos años se ha convertido en un estándar *de-facto* y es muy popular en sitios web de mucho tráfico. En esta práctica, lo utilizaremos para repartir carga y construir una infraestructura de altas prestaciones atendiendo al Escenario 2. 
+HAProxy es un [proxy inverso](https://www.cloudflare.com/es-es/learning/cdn/glossary/reverse-proxy/) gratuito que aporta balanceo de carga y alta disponibilidad para aplicaciones basadas en HTTP y TCP. En los últimos años se ha convertido en un estándar *de-facto* y es muy popular en sitios web de mucho tráfico. En esta práctica, lo utilizaremos para repartir carga y construir una infraestructura de altas prestaciones atendiendo al Escenario 2. 
 
 La configuración básica de HAProxy como balanceador requiere editar el archivo /etc/haproxy/haproxy.cfg para indicarle: 
 - frontend: IPs y puertos que HAProxy tiene que escuchar para recibir peticiones.
