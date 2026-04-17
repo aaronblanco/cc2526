@@ -1,0 +1,5 @@
+dn: ou=People,dc=practica1,dc=org
+ou: People
+objectClass: top
+objectClass: organizationalUnit
+description: Parent object for employee accounts

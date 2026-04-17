@@ -1,0 +1,14 @@
+dn: uid=luis,ou=People,dc=practica1,dc=org
+cn: Luis Romero
+uid: luis
+sn: Romero
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uidNumber: 10002
+gidNumber: 10002
+homeDirectory: /home/luis
+loginShell: /bin/bash
+gecos: Luis Romero
+userPassword: luis12345
+mail: luis@practica1.org

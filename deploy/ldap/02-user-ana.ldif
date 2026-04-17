@@ -1,0 +1,14 @@
+dn: uid=ana,ou=People,dc=practica1,dc=org
+cn: Ana Garcia
+uid: ana
+sn: Garcia
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uidNumber: 10001
+gidNumber: 10001
+homeDirectory: /home/ana
+loginShell: /bin/bash
+gecos: Ana Garcia
+userPassword: ana12345
+mail: ana@practica1.org
