@@ -50,7 +50,7 @@ bash scripts/init-ldap.sh
 Comprueba que la OU y usuarios se cargaron:
 
 ```bash
-podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b ou=People,dc=example,dc=org -D "cn=admin,dc=example,dc=org" -w admin
+podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b ou=People,dc=practica1,dc=org -D "cn=admin,dc=practica1,dc=org" -w admin
 ```
 
 **Esperado**: Devuelve ou=People y dos usuarios: uid=ana y uid=luis.
@@ -58,16 +58,16 @@ podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b ou=People,dc=exampl
 Ejemplo de salida:
 
 ```
-dn: ou=People,dc=example,dc=org
+dn: ou=People,dc=practica1,dc=org
 ou: People
 ...
 
-dn: uid=ana,ou=People,dc=example,dc=org
+dn: uid=ana,ou=People,dc=practica1,dc=org
 uid: ana
 cn: Ana Garcia
 ...
 
-dn: uid=luis,ou=People,dc=example,dc=org
+dn: uid=luis,ou=People,dc=practica1,dc=org
 uid: luis
 cn: Luis Romero
 ...
@@ -92,11 +92,11 @@ Una vez dentro de OwnCloud (como admin):
 3. Ve a Administración > Configuración > Autenticación.
 4. Configura la conexión LDAP:
 
-   - **Host**: ldap (nombre del servicio en red interna) o 172.17.0.1:20001 (desde fuera del contenedor)
+   - **Host**: ldap (nombre del servicio en red interna)
    - **Port**: 389
-   - **Bind DN**: cn=admin,dc=example,dc=org
+   - **Bind DN**: cn=admin,dc=practica1,dc=org
    - **Bind Password**: (tu LDAP_ADMIN_PASSWORD de .env)
-   - **Base DN**: dc=example,dc=org
+   - **Base DN**: dc=practica1,dc=org
    - **User Search Attributes**: uid
    - **Display Name Attribute**: cn
    - **Group Search Attributes**: cn
@@ -120,7 +120,7 @@ La persistencia es un requisito explícito evaluable. Prueba lo siguiente:
 
 1. Verifica usuario actual en LDAP:
 ```bash
-podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b uid=ana,ou=People,dc=example,dc=org -w ana -D "uid=ana,ou=People,dc=example,dc=org"
+podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b uid=ana,ou=People,dc=practica1,dc=org -w ana -D "uid=ana,ou=People,dc=practica1,dc=org"
 ```
 
 2. Detén contenedor LDAP:
@@ -135,7 +135,7 @@ podman start cc-ldap
 
 4. Vuelve a verificar usuario (debería seguir existiendo):
 ```bash
-podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b uid=ana,ou=People,dc=example,dc=org -w ana -D "uid=ana,ou=People,dc=example,dc=org"
+podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b uid=ana,ou=People,dc=practica1,dc=org -w ana -D "uid=ana,ou=People,dc=practica1,dc=org"
 ```
 
 **Esperado**: El usuario sigue disponible tras reinicio.

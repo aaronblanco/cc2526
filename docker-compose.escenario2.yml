@@ -1,0 +1,137 @@
+name: cc-practica1-s2
+
+services:
+  ldap:
+    image: osixia/openldap:1.5.0
+    container_name: cc-ldap
+    environment:
+      LDAP_ORGANISATION: "Ugr"
+      LDAP_DOMAIN: "Practica1.org"
+      LDAP_ADMIN_PASSWORD: ${LDAP_ADMIN_PASSWORD}
+    ports:
+      - "${LDAP_PORT}:389"
+      - "${LDAPS_PORT}:636"
+    volumes:
+      - ldap_database:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+      - ./deploy/ldap:/ldif:ro
+    networks:
+      - cc_net
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost:389 -s base -b \"\" namingContexts >/dev/null 2>&1"]
+      interval: 20s
+      timeout: 10s
+      retries: 8
+
+  db:
+    image: mariadb:11
+    container_name: cc-db
+    environment:
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    command: ["--transaction-isolation=READ-COMMITTED", "--binlog-format=ROW"]
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - cc_net
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u${DB_USER} -p${DB_PASSWORD} >/dev/null 2>&1"]
+      interval: 20s
+      timeout: 10s
+      retries: 8
+
+  redis:
+    image: redis:7-alpine
+    container_name: cc-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - cc_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+
+  owncloud:
+    image: owncloud/server:10.13
+    container_name: cc-owncloud
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ldap:
+        condition: service_healthy
+    ports:
+      - "${OWNCLOUD_PORT}:8080"
+    environment:
+      OWNCLOUD_DOMAIN: ${OWNCLOUD_DOMAIN}
+      OWNCLOUD_TRUSTED_DOMAINS: ${OWNCLOUD_TRUSTED_DOMAINS}
+      OWNCLOUD_DB_TYPE: mysql
+      OWNCLOUD_DB_NAME: ${DB_NAME}
+      OWNCLOUD_DB_USERNAME: ${DB_USER}
+      OWNCLOUD_DB_PASSWORD: ${DB_PASSWORD}
+      OWNCLOUD_DB_HOST: db
+      OWNCLOUD_REDIS_ENABLED: "true"
+      OWNCLOUD_REDIS_HOST: redis
+      OWNCLOUD_ADMIN_USERNAME: ${OWNCLOUD_ADMIN_USER}
+      OWNCLOUD_ADMIN_PASSWORD: ${OWNCLOUD_ADMIN_PASSWORD}
+    volumes:
+      - owncloud_data:/mnt/data
+    networks:
+      - cc_net
+
+  owncloud2:
+    image: owncloud/server:10.13
+    container_name: cc-owncloud2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ldap:
+        condition: service_healthy
+      owncloud:
+        condition: service_started
+    environment:
+      OWNCLOUD_DOMAIN: ${OWNCLOUD_DOMAIN}
+      OWNCLOUD_TRUSTED_DOMAINS: ${OWNCLOUD_TRUSTED_DOMAINS}
+      OWNCLOUD_DB_TYPE: mysql
+      OWNCLOUD_DB_NAME: ${DB_NAME}
+      OWNCLOUD_DB_USERNAME: ${DB_USER}
+      OWNCLOUD_DB_PASSWORD: ${DB_PASSWORD}
+      OWNCLOUD_DB_HOST: db
+      OWNCLOUD_REDIS_ENABLED: "true"
+      OWNCLOUD_REDIS_HOST: redis
+      OWNCLOUD_ADMIN_USERNAME: ${OWNCLOUD_ADMIN_USER}
+      OWNCLOUD_ADMIN_PASSWORD: ${OWNCLOUD_ADMIN_PASSWORD}
+    volumes:
+      - owncloud_data:/mnt/data
+    networks:
+      - cc_net
+
+  haproxy:
+    image: haproxy:2.9
+    container_name: cc-haproxy
+    depends_on:
+      - owncloud
+      - owncloud2
+    ports:
+      - "${HAPROXY_PORT}:8080"
+      - "${HAPROXY_STATS_PORT}:8404"
+    volumes:
+      - ./deploy/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro,Z
+    networks:
+      - cc_net
+
+networks:
+  cc_net:
+    driver: bridge
+
+volumes:
+  ldap_database:
+  ldap_config:
+  mariadb_data:
+  owncloud_data:

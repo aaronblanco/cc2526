@@ -43,14 +43,33 @@ Problemas que se resuelven:
 - Persistencia de datos tras reinicios.
 - Despliegue automatizable en entorno restringido (sin sudo).
 
-Arquitectura implementada (Escenario 1):
+Arquitectura implementada hasta este punto (Escenario 1):
 
 - OwnCloud (frontend web)
 - MariaDB (SGBD)
 - Redis (cache)
 - OpenLDAP (autenticacion)
 
-## Servicios desplegados y su configuracion
+## Estructura del documento por tareas evaluables
+
+Este documento se organiza siguiendo las tareas del enunciado oficial de la Practica 1:
+
+- Tarea 1: completada y verificada (Escenario 1).
+- Tarea 2: en preparacion y despliegue (Escenario 2 con HAProxy y replica).
+- Tarea 3: planificada (docker-compose y Kubernetes sobre tarea 1 o 2).
+
+## Tarea 1 - Enunciado y trabajo realizado
+
+**Enunciado oficial (tarea minima obligatoria):**
+
+**1.- Diseno y despliegue de un servicio OwnCloud basado en contenedores segun la arquitectura descrita en el Escenario 1 (Ver seccion Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios:**
+
+- Servicio de alojamiento y gestion de archivos (ownCloud)
+- Sistema gestor de base de datos (SGBD): MariaDB, MySQL o PostgreSQL
+- Redis
+- LDAP (autenticacion de usuarios)
+
+## Tarea 1 - Servicios desplegados y configuracion
 
 ### Estructura relevante del proyecto
 
@@ -93,6 +112,8 @@ Valores minimos a revisar en deploy/compose/.env:
 - DB_PASSWORD
 - DB_ROOT_PASSWORD
 - LDAP_ADMIN_PASSWORD
+
+Nota: `OWNCLOUD_DOMAIN` debe incluir el puerto de acceso real, mientras que `OWNCLOUD_TRUSTED_DOMAINS` solo admite hostnames o IPs, sin puerto. Si accedes mediante túnel SSH, puedes dejar `localhost`; si accedes directamente al servidor, usa su IP o nombre real.
 
 ### Provision manual de servicios (sin scripts)
 
@@ -217,20 +238,43 @@ Abrir OwnCloud en:
 
 - http://<host-servidor>:20000
 
-Configurar LDAP en panel de administracion de OwnCloud:
+Configuracion LDAP validada (paso a paso):
 
-- Activar app "LDAP / Active Directory Integration"
-- Host LDAP: ldap
-- Puerto LDAP: 389
-- Bind DN: cn=admin,dc=practica1,dc=org
-- Bind password: valor de LDAP_ADMIN_PASSWORD
-- Base DN: dc=practica1,dc=org
-- Atributo de login: uid
+1. Iniciar sesion en OwnCloud con el admin local (`OWNCLOUD_ADMIN_USER` / `OWNCLOUD_ADMIN_PASSWORD`).
 
-Probar inicio de sesion con:
+2. Ir a Apps y activar **LDAP Integration**.
+	- Si no aparece en menu, abrir directamente `http://<host-servidor>:20000/index.php/settings/apps`.
 
-- ana / ana12345
-- luis / luis12345
+3. Ir a Settings > Admin > LDAP/AD Integration.
+
+4. En la pestaña **Server**, rellenar:
+	- Host: `ldap`
+	- Port: `389`
+	- Use StartTLS support: desactivado
+	- User DN: `cn=admin,dc=practica1,dc=org`
+	- Password: valor de `LDAP_ADMIN_PASSWORD`
+	- One Base DN per line: `dc=practica1,dc=org`
+	- Manually enter LDAP filters: desactivado
+
+5. Pulsar **Continue**.
+
+6. En **Login Attributes**, usar `uid` como atributo de login (LDAP/AD Username).
+
+7. Guardar configuracion y validar conectividad desde la propia pantalla LDAP (estado sin errores).
+
+8. Cerrar sesion de admin y probar inicio con usuarios LDAP:
+	- `ana` / `ana12345`
+	- `luis` / `luis12345`
+
+Notas de verificacion:
+
+- Si en Users solo aparece `admin`, es normal antes de activar/configurar LDAP o antes del primer login de usuarios LDAP.
+- Si no aparece la seccion LDAP en la web, se puede habilitar por CLI:
+
+```bash
+podman exec -u www-data cc-owncloud occ app:enable user_ldap
+podman exec -u www-data cc-owncloud occ app:list | grep user_ldap
+```
 
 ### Persistencia de datos
 
@@ -259,7 +303,7 @@ podman-compose up -d
 
 3. Comprobar que el archivo sigue disponible tras reinicio.
 
-### Checklist de verificacion final (Escenario 1)
+### Checklist de verificacion final de la Tarea 1 (Escenario 1)
 
 - [ ] cc-ldap en estado Up (healthy)
 - [ ] cc-db en estado Up (healthy)
@@ -270,9 +314,55 @@ podman-compose up -d
 - [ ] Login LDAP en OwnCloud operativo
 - [ ] Persistencia verificada tras reinicio
 
+## Tarea 2 - Enunciado y plan de ejecucion
+
+**Enunciado oficial (tarea para maxima puntuacion):**
+
+**2.- Diseno y despliegue de un servicio OwnCloud basado en contenedores, con alta disponibilidad e inspirado en la arquitectura descrita en el Escenario 2. En particular, se requiere que este servicio incluya:**
+
+- Balanceo de carga con HAProxy (u otra herramienta)
+- Servicio web ownCloud
+- SGBD
+- Redis
+- LDAP
+- Replicacion de, al menos, uno de los microservicios anteriores
+
+Estado actual de la Tarea 2 en este repositorio:
+
+- Compose dedicado creado: `deploy/compose/docker-compose.scenario2.yml`
+- Configuracion de HAProxy lista para balanceo: `deploy/haproxy/haproxy.cfg`
+- Guia de verificacion creada: `VERIFICACION_ESCENARIO2.md`
+
+Siguiente paso operativo para Tarea 2:
+
+1. Levantar escenario 2 con `podman-compose -f deploy/compose/docker-compose.scenario2.yml up -d`.
+2. Verificar backends `oc1` y `oc2` en stats de HAProxy.
+3. Validar login LDAP y persistencia tambien a traves del frontend de HAProxy.
+
+## Tarea 3 - Enunciado y plan de trabajo
+
+**Enunciado oficial:**
+
+**3.- Diseno y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes.**
+
+Objetivo previsto para esta entrega:
+
+- Partir de la arquitectura ya validada.
+- Preparar version equivalente para docker-compose.
+- Adaptar despliegue a Kubernetes y documentar ejecucion.
+
+Plan inicial para la Tarea 3:
+
+1. Seleccionar base (Tarea 1 o Tarea 2) para migracion.
+2. Generar manifiestos Kubernetes (Deployments, Services, ConfigMaps y volumenes).
+3. Validar acceso a ownCloud, login LDAP y persistencia en Kubernetes.
+4. Incluir en la documentacion comandos de despliegue, pruebas y evidencias.
+
 ## Conclusiones
 
-Se ha desplegado correctamente la arquitectura base del Escenario 1 con Podman y podman-compose en un entorno sin privilegios de administrador. El uso de volumenes nombrados evita problemas de permisos en host y mantiene persistencia en LDAP, MariaDB y OwnCloud. La autenticacion LDAP queda integrada y validada con usuarios reales del directorio, cumpliendo los criterios funcionales del enunciado.
+Se ha completado y validado la Tarea 1 (Escenario 1) con Podman y podman-compose en un entorno sin privilegios de administrador. El uso de volumenes nombrados evita problemas de permisos en host y mantiene persistencia en LDAP, MariaDB y ownCloud. La autenticacion LDAP queda integrada y validada con usuarios reales del directorio.
+
+Ademas, el repositorio ya incluye la base tecnica para continuar con la Tarea 2 (escenario de alta disponibilidad con HAProxy y replica) y un plan de trabajo para abordar la Tarea 3 en docker-compose y Kubernetes.
 
 ## Referencias bibliograficas y recursos utilizados
 

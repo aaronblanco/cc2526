@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Pr&aacute;ctica 1&colon; Despliegue de servicio</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="práctica-1-despliegue-de-servicio">Práctica 1: Despliegue de servicio</h1>
+<h1 id="contenidos">Contenidos:</h1>
+<ul>
+<li><a href="#1-objetivos-de-la-pr%C3%A1ctica">1. Objetivos de la práctica</a></li>
+<li><a href="#2-descripci%C3%B3n-del-trabajo-a-desarrollar-en-la-pr%C3%A1ctica">2. Descripción del trabajo a desarrollar en la práctica</a></li>
+<li><a href="#3-caracter%C3%ADsticas-de-cada-servicio-para-despliegue-con-contenedores">3. Características de cada servicio para despliegue con contenedores</a>
+<ul>
+<li><a href="#31-despliegue-y-gesti%C3%B3n-de-servicios-de-autenticaci%C3%B3n-de-usuarios-con-ldap">3.1. Despliegue y gestión de servicios de autenticación de usuarios con LDAP</a></li>
+<li><a href="#32-despliegue-de-owncloud">3.2. Despliegue de ownCloud</a></li>
+<li><a href="#33-despliegue-de-haproxy">3.3. Despliegue de HAProxy</a></li>
+</ul>
+</li>
+<li><a href="#entrega-de-la-pr%C3%A1ctica-a-traves-de-prado-documentaci%C3%B3n-y-evaluaci%C3%B3n-de-la-pr%C3%A1ctica">4. Entrega a través de PRADO. Documentación y evaluación de la práctica</a></li>
+<li><a href="#referencias">5. Referencias</a></li>
+</ul>
+<h2 id="1-objetivos-de-la-práctica">1. Objetivos de la práctica</h2>
+<ul>
+<li>Crear servicios interconectados usando contenedores.</li>
+<li>Conocer el despliegue de servicios en contenedores usando podman, podman-compose y kubernetes.</li>
+<li>Implementar distintas arquitecturas de servicios en contenedores en función de los requisitos del sistema.</li>
+<li>Gestionar la escalabilidad de los servicios.</li>
+<li>Gestionar réplicas y herramientas de monitorización y balanceo de carga.</li>
+<li>Implementar una arquitectura de alta disponibilidad y uso concurrente por parte de múltiples usuarios.</li>
+<li>Gestión de servicio de autenticación de usuarios.</li>
+<li>Trabajar la persistencia de datos en contenedores.</li>
+</ul>
+<h2 id="2-descripción-del-trabajo-a-desarrollar-en-la-práctica">2. Descripción del trabajo a desarrollar en la práctica</h2>
+<h3 id="21-introducción">2.1. Introducción</h3>
+<p>La prestación de servicios en Cloud Computing requiere su despliegue en una plataforam. Este despliegue debe considerar tanto las infraestructuras como el software, no solo cubriendo los requisitos funcionales sino también los no funcionales, especialmente laa capacidad de escalabilidad dinámica.  Aprovechar los recursos que ofrece Cloud Computing de forma flexible es la clave para el correcto diseño de servicios interconectados desplegados en la nube (mediante contenedores).</p>
+<p>OwnCloud es una herramienta <em>open-source</em> de sincronización y compartición de ficheros en la nube. Es una alternativa en código abierto a servicios privativos como Google Drive o Dropbox, con <a href="https://owncloud.com/getting-started/">gran soporte entre la comunidad</a>.</p>
+<p>Existe desplegada una versión de demostración de <a href="https://demo.owncloud.com">OwnCloud</a>.</p>
+<p><strong>El objetivo de esta práctica es desplegar un servicio autoloajado de OwnCloud</strong>. Con este despliegue, estaremos dando servicio a nuestra organización o empresa. Según el tamaño de la empresa, sus necesidades y su infraestructura, se recomendarán distintas arquitecturas cloud para el despliegue de este servicio. Un <strong>objetivo secundario de esta práctica es conseguir desplegar este servicio con distintas arquitecturas y empleando distintas soluciones tecnológicas de la nube</strong>.</p>
+<p>Para realizar este despliegue, se requiere que el estudiante utilice tecnologías Cloud basadas en contenedores utilizando los motores de contenerización y de orquestación de contenedores vistas en las sesiones anteriores: Docker/Podman, Docker/Podman-compose y Kubernetes.</p>
+<h3 id="22-tareas-a-realizar">2.2. Tareas a realizar</h3>
+<p><strong>Tarea mínima obligatoria para superar la práctica</strong>:</p>
+<p>1.- Diseño y despliegue de un servicio OwnCloud basado en contenedores según la arquitectura descrita en el Escenario 1 (Ver sección Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios:</p>
+<ul>
+<li>Servicio de alojamiento y gestión de archivos (ownCloud)</li>
+<li>Sistema gestor de base de datos (SGBD): MariaDB, MySQL o PostgreSQL</li>
+<li>Redis</li>
+<li>LDAP (autenticación de usuarios)</li>
+</ul>
+<p>Para el despliegue debe usarse <strong>obligatoriamente</strong> podman y podman-compose. El despliegue debe hacerse en el servidor <code>docker.ugr.es</code>. Cada alumno debe utilizar puertos incluidos en el rango que se le asignó (y que están registrados en Prado).</p>
+<p><strong>Tareas adicionales para conseguir la máxima puntuación en la práctica</strong>:</p>
+<p>2.- Diseño y despliegue de un servicio OwnCloud basado en contenedores, con alta disponibilidad e inspirado en la arquitectura descrita en el Escenario 2. En particular, se requiere que este servicio incluya:</p>
+<ul>
+<li>Balanceo de carga con HAProxy (u otra herramienta)</li>
+<li>Servicio web OwnCloud</li>
+<li>SGBD</li>
+<li>Redis</li>
+<li>LDAP (autenticación de usuarios)</li>
+<li>Replicación de, al menos, uno de los microservicios anteriores (servidor web, LDAP o SGBD).</li>
+</ul>
+<p>3.- Diseño y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes.</p>
+<h3 id="23-implementación-y-despliegue-de-los-servicios-con-contenedores">2.3. Implementación y despliegue de los servicios con contenedores</h3>
+<p>El objetivo de esta práctica es que el alumno sea capaz de poner en marcha un sistema OwnCloud en la nube, basado en los servicios citados anteriormente.</p>
+<p>Para esta implementación con contenedores, se sugiere realizar el despliegue de manera escalonada en cada una de las siguientes modalidades:</p>
+<h4 id="podman">Podman</h4>
+<p>Para este despligue es necesario crear imágenes adecuadas para cada uno de los contenedores de forma individual para que alberguen cada uno de los servicios indicados. En esta modalidad, los contenedores tienen que ejecutarse individualmente, lo que requerirá que se cree un script para poder desplegar y también bajar todos los servicios.</p>
+<h4 id="podman-compose">Podman-compose</h4>
+<p>Para este despliegue se requiere el uso de la herramienta de composición de servicios <code>podman compose</code> que provee Docker o Podman. Al igual que la anterior, se requiere que se incluyan todos los sevicios dentro del fichero de descripción de servicios a desplegar en <code>docker compose</code>.</p>
+<h4 id="kubernetes">Kubernetes</h4>
+<p>Este tipo de despliegue permite automatizar gran parte de las tareas y del ciclo de vida de los servicios.
+El servicio de HAProxy puede sustituirse por el equivalente en Kubernetes, que permite balancear la carga entre los diferentes contenedores de cada <code>namespace</code>.</p>
+<h3 id="24-tipos-de-arquitecturas-de-cloud-propuestas">2.4. Tipos de arquitecturas de cloud propuestas</h3>
+<p>En esta sección se describen dos posibles arquitecturas de cloud para el despliegue del servicio en función del tamaño de la empresa y de los recursos TIC disponibles. Las indicaciones están tomadas de <a href="https://doc.owncloud.com/server/next/admin_manual/installation/deployment_recommendations.html">https://doc.owncloud.com/server/next/admin_manual/installation/deployment_recommendations.html</a> .</p>
+<h4 id="escenario-1-pequeña-empresa-o-departamento---grupo-de-usuarios-pequeño">Escenario 1: Pequeña empresa o departamento - grupo de usuarios pequeño</h4>
+<p>Este escenario sería el más apropiado para cuando se den las siguientes restricciones:</p>
+<ul>
+<li>Número de usuarios: Hasta 150</li>
+<li>Almacenamiento: 100 GB - 10TB</li>
+<li>Disponibilidad:
+<ul>
+<li>Fallo de un elemento conlleva la interrupción del servicio</li>
+<li>Esquema de copias de seguridad (backups): nocturno con interrupción momentánea del servicio</li>
+</ul>
+</li>
+</ul>
+<h5 id="arquitectura-cloud-propuesta">Arquitectura cloud propuesta</h5>
+<p>Una máquina ejecutando la aplicación: la web, el servidor de BD y almacenamiento local. Otra máquina prestando el servicio de autenticación a través de LDAP. Como no tenemos disponibles más de una máquina, no hay problema en simularlo todo en la misma máquina. Este diagrama representaría la arquitectura propuesta:</p>
+<p><img src="https://doc.owncloud.com/server/next/admin_manual/_images/installation/deprecs-1.png" alt="Arquitectura propuesta para una pequeña empresa"></p>
+<p>Que incluye los siguientes 4 servicios:</p>
+<ul>
+<li>Servicio web owncloud</li>
+<li>SGBD</li>
+<li><a href="https://redis.io/">Redis</a></li>
+<li>LDAP (autenticación de usuarios)</li>
+</ul>
+<h5 id="balanceo-de-carga">Balanceo de carga</h5>
+<p>No.</p>
+<h5 id="base-de-datos">Base de datos</h5>
+<p>Sistema relacional.</p>
+<h5 id="autenticación">Autenticación</h5>
+<p>Autenticación de usuarios a través de uno o varios servidores LDAP. Para ello, desplegar un servicio de LDAP tal y como se explica en la sección <a href="#31-despliegue-y-gesti%C3%B3n-de-servicios-de-autenticaci%C3%B3n-de-usuarios-con-ldap">Despliegue y gestión de servicios de autenticación de usuarios con LDAP</a> y luego <a href="#32-despliegue-de-owncloud">integrar LDAP con ownCloud como se explica en la sección correspondiente</a>.</p>
+<h5 id="almacenamiento">Almacenamiento</h5>
+<p>Local.</p>
+<h4 id="escenario-2-empresa-mediana">Escenario 2: Empresa mediana</h4>
+<p>Este escenario sería el más apropiado para un volumen de usuarios y demás criterios en línea con los siguientes números:</p>
+<ul>
+<li>Número de usuarios: 150 - 1,000</li>
+<li>Almacenamiento: Hasta 200TB.</li>
+<li>Disponibilidad:
+<ul>
+<li>Cada componente es redundante y el sistema es robusto a caídas de componentes sin que se produzca interrupción del servicio</li>
+<li>Copias de seguridad (backups) sin interrupción del servicio</li>
+</ul>
+</li>
+</ul>
+<h5 id="arquitectura-cloud-propuesta-1">Arquitectura cloud propuesta</h5>
+<p>En un escenario real, se propondría una arquitectura en cloud con los siguientes elementos:</p>
+<ul>
+<li>2 a 4 servidores de aplicación</li>
+<li>Un cluster de dos servidores de BDs.</li>
+<li>Almacenamiento en un servidor NFS.</li>
+<li>Autenticación a través de servicio LDAP.</li>
+<li>Servicio Redis para bloque de ficheros.</li>
+<li>Balanceador de carga HAproxy.</li>
+</ul>
+<p>Este diagrama representaría la arquitectura propuesta:</p>
+<p><img src="https://doc.owncloud.com/server/next/admin_manual/_images/installation/deprecs-2.png" alt="Arquitectura propuesta para una mediana empresa"></p>
+<p>En un escenario simulado, como el que nos ocupa, bastará con implementar los siguientes servicios:</p>
+<ul>
+<li>Balanceo de carga con HAProxy (u otra herramienta)</li>
+<li>Servicio web owncloud</li>
+<li>SGBD</li>
+<li>Redis</li>
+<li>LDAP</li>
+<li>Replicación de servicio de, al menos, uno de los servicios anteriores.</li>
+</ul>
+<h5 id="balanceo-de-carga-1">Balanceo de Carga</h5>
+<p>Un servicio HAProxy ejecutándose en un servidor dedicado que recibe todas las peticiones y las envía a los servidores de aplicación según corresponda.</p>
+<h5 id="base-de-datos-1">Base de datos</h5>
+<p>En un entorno real, se construiría un cluster de servicios SGBD <a href="https://mariadb.com/kb/en/setting-up-replication/">con réplicas</a> y consideraríamos, además, un <a href="https://mariadb.com/kb/en/mariadb-maxscale-22-automatic-failover-with-mariadb-monitor">monitor de configuración para el SGBD</a> para prevenir comportamiento ante caídas del servicio. En nuestro caso, sin embargo, bastará con replicar uno de los servicios anteriores.</p>
+<h5 id="autenticación-1">Autenticación</h5>
+<p>Autenticación de usuario a través de uno o varios servidores LDAP.</p>
+<h5 id="almacenamiento-1">Almacenamiento</h5>
+<p>Para el almacenamiento en este tipo de sistemas exploraríamos opciones como IBM Elastic Storage, Amazon S3 o soluciones NetApp, por ejemplo. En cualquier caso, no se requerirá el uso de este tipo de servicios para la implementación de un prototipo en el escenario 2 y bastará con que utilicéis almacenamiento local (bind mounts o volúmenes).</p>
+<p>Alternativamente, podéis considerar el uso de <a href="https://rustfs.com/">Rustfs</a> o <a href="https://seaweedfs.com/">SeaweedFS</a>.</p>
+<h2 id="3-características-de-cada-servicio-para-despliegue-con-contenedores">3. Características de cada servicio para despliegue con contenedores</h2>
+<h2 id="31-despliegue-y-gestión-de-servicios-de-autenticación-de-usuarios-con-ldap">3.1. Despliegue y gestión de servicios de autenticación de usuarios con LDAP</h2>
+<p><a href="https://es.wikipedia.org/wiki/Protocolo_ligero_de_acceso_a_directorios">LDAP</a> es un protocolo ligero para acceder a servidores de directorios. ¿Qué es un servidor de directorios? Es una base de datos jerárquica orientada a objetos.</p>
+<p>El paquete openldap-client instala herramientas que se utilizan para añadir, modificar y eliminar entradas en un directorio LDAP. Estas herramientas incluyen las siguientes:</p>
+<ul>
+<li>
+<p>ldapadd - Añade entradas a un directorio LDAP aceptando entradas a través de un archivo o entrada estándar; ldapadd es en realidad un enlace duro para ldapmodify -a.</p>
+</li>
+<li>
+<p>ldapdelete - Borra las entradas de un directorio LDAP aceptando la entrada del usuario en un intérprete de comandos de shell o a través de un archivo.</p>
+</li>
+<li>
+<p>ldapmodify - Modifica las entradas en un directorio LDAP, aceptando la entrada a través de un archivo o entrada estándar.</p>
+</li>
+<li>
+<p>ldappasswd - Establece la contraseña para un usuario LDAP.</p>
+</li>
+<li>
+<p>ldapsearch - Busca entradas en un directorio LDAP usando un shell prompt.</p>
+</li>
+<li>
+<p>ldapcompare - Abre una conexión con un servidor LDAP, se une y realiza una comparación usando parámetros especificados.</p>
+</li>
+<li>
+<p>ldapwhoami - Abre una conexión a un servidor LDAP, se une, y realiza una operación whoami.</p>
+</li>
+<li>
+<p>ldapmodrdn - Abre una conexión a un servidor LDAP, vincula y modifica las RDNs de entradas.</p>
+</li>
+</ul>
+<h3 id="objetos-y-clases">Objetos y clases</h3>
+<p>Los datos en LDAP se almacenan en objetos. Estos objetos contienen varios atributos, que son básicamente un conjunto de pares clave/valor. Puesto que los datos en LDAP están estructurados, los objetos sólo pueden contener claves válidas y las claves válidas dependen de la clase del objeto. Las clases en LDAP pueden definir atributos obligatorios y opcionales y su tipo.</p>
+<p><em>Las clases se asignan a objetos utilizando el atributo objectClass. LDAP define por defecto algunas clases básicas, tipos y métodos de comparación, pero el administrador es libre de definir los suyos propios.</em></p>
+<h3 id="atributos">Atributos</h3>
+<p>Los datos mismos en un sistema LDAP se almacenan principalmente en elementos llamados atributos. Los atributos son básicamente pares clave-valor. A diferencia de otros sistemas, las claves tienen nombres predefinidos dictados por el objetoClases seleccionados para la entrada. Además, los datos de un atributo deben coincidir con el tipo definido en la definición inicial del atributo.</p>
+<pre><code>...
+home: /home/carlos
+...
+</code></pre>
+<h3 id="entradas">Entradas</h3>
+<p>Los atributos por sí mismos no son muy útiles. Para tener sentido, deben estar asociados con algo. Dentro de LDAP, se utilizan atributos dentro de una entrada.</p>
+<p>Una entrada es básicamente una colección de atributos bajo un nombre usado para describir algo.</p>
+<pre><code># LDAP user entry example
+dn: cn=carlos,dc=example,dc=org
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+cn: carlos
+...
+</code></pre>
+<h3 id="dit">DIT</h3>
+<p>Un DIT es simplemente la jerarquía que describe la relación entre las entradas existentes.</p>
+<p>Al crear, cada nueva entrada debe &quot;engancharse&quot; al DIT existente colocándose como hijo de una entrada existente.</p>
+<p>Esto crea una estructura similar a un árbol que se utiliza para definir relaciones de ordenación y asignar significado.</p>
+<h3 id="distinguished-name-dn-nombre-distinguido">Distinguished name (dn). Nombre distinguido.</h3>
+<p>Funciona como una ruta completa de regreso a la raíz de los árboles de información de datos, o DITs.</p>
+<p>Por ejemplo:</p>
+<pre><code>dn: cn=carlos,dc=example,dc=org
+</code></pre>
+<ul>
+<li>
+<p>cn: Common name</p>
+</li>
+<li>
+<p>(ou: organizational segment / Organizational Unit) (Opcional)</p>
+</li>
+<li>
+<p>dc = Domain Component</p>
+</li>
+</ul>
+<p>El padre directo es el nombre de dominio &quot;<a href="http://example.org">example.org</a>&quot;, que funciona como raiz de nuestro DIT. Si tuviéramos grupos de usuarios, habría que trazar la ruta desde el usuario a la raíz a través de estos grupos. Los grupos de usuarios se utilizan a menudo para las categorías generales bajo la entrada DIT de nivel superior, cosas como ``ou=personas, ou=grupos, y ou=inventario``` son los más comunes.</p>
+<h3 id="ejemplo-de-la-estructura-de-ldap">Ejemplo de la estructura de LDAP</h3>
+<p>En el <a href="https://www.openldap.org/doc/admin21/intro.html">manual de OpenLDAP</a> tenéis un par de imágenes con diferentes estructuras del DIT:</p>
+<p><img src="https://www.openldap.org/doc/admin21/intro_dctree.gif" alt="LDAPstruct"></p>
+<p><img src="https://www.openldap.org/doc/admin21/intro_tree.gif" alt="LDAPstruct"></p>
+<h2 id="desplegando-openldap">Desplegando OpenLDAP</h2>
+<p>OpenLDAP es una implementación de código abierto de LDAP disponible aquí: <a href="https://www.openldap.org">https://www.openldap.org</a></p>
+<p>Puedes desplegar openLDAP desde una de las muchas imágenes de Docker disponibles <strong>(reemplazar el puerto 20389 con uno que se os haya asignado)</strong>:</p>
+<pre><code>docker run -d -p 20389:389 --name openldap-server -t osixia/openldap:1.5.0 
+</code></pre>
+<h2 id="verificando-el-estado-del-directorio-ldap">Verificando el estado del directorio LDAP</h2>
+<p>Para comprobar el estado del directorio LDAP, prueba:</p>
+<pre><code>ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+</code></pre>
+<p>o</p>
+<pre><code>docker exec openldap-server ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+
+</code></pre>
+<p>Donde <code>-w </code> sirve para indicar el password del administrador <code>admin</code>, por defecto es también <code>admin</code>.</p>
+<p>Esto imprime por pantalla el listado de todos los objetos que cuelgan del servicio de directorio bajo el objeto  <code>dc=example</code> que está bajo el objeto raíz <code>dc=org</code>:</p>
+<pre><code>...
+w admin
+# extended LDIF
+#
+# LDAPv3
+# base &lt;dc=example,dc=org&gt; with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# example.org
+dn: dc=example,dc=org
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: Example Inc.
+dc: example
+
+...
+</code></pre>
+<p>En este caso, solo el propio objeto <a href="http://example.org">example.org</a> (<code>dc=example,dc=org</code>) cuelga de este directorio.</p>
+<p>El formato de <code>ldapsearch</code> es:</p>
+<p><code>ldapsearch -H &lt;host&gt; -LL -b &lt;Query node&gt; -x</code></p>
+<p>La utilidad LDAP  <code>ldaputility</code> contiene muchas opciones y parámetros, para más información revisa el <a href="https://www.centos.org/docs/5/html/CDS/ag/8.0/Finding_Directory_Entries-Using_ldapsearch.html">manual</a>.</p>
+<h3 id="añadir-un-nuevo-usuario">Añadir un nuevo usuario</h3>
+<p>Una manera de agregar nuevos objetos al directorio LDAP es a través de un archivo LDIF. El fichero ldif debe contener definiciones de todos los atributos necesarios para las entradas que desea crear.
+Con este archivo <code>ldif</code>, puede usar el comando <code>ldapadd</code> para importar las entradas al directorio como se explica a continuación.</p>
+<p>Crea un archivo <code>&lt;nombreUsuario&gt;.ldif</code> (en mi caso, este se llama <code>carlos.ldif</code>) y copia este esqueleto, modifícalo e incluye tus datos (es decir, reemplaza <code>cn=carlos</code> por <code>cn=&lt;tu-usuario&gt;</code>, <code>uid=carlos</code> por <code>uid=&lt;uid-tu-usuario&gt;</code>, etc.).</p>
+<pre><code>dn: uid=carlos,dc=example,dc=org
+cn: carloscano
+uid: carlos
+sn: 3
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uidNumber: 501
+gidNumber: 20
+homeDirectory: /home/carlos
+loginShell: /bin/bash
+gecos: carlos
+userPassword: {crypt}x
+</code></pre>
+<p>El nuevo objeto tiene <code>uid:carlos</code> y está colocado directamente bajo la rama <code>dc=example,dc=org</code>. El password se generará automáticamente y aparecerá encriptado en las siguientes consultas. Veremos cómo cambiarlo más adelante.</p>
+<p>Para añadir el usuario en LDAP utilizamos:</p>
+<pre><code>ldapadd -x -D &quot;cn=admin,dc=example,dc=org&quot; -w admin -c -f carlos.ldif
+</code></pre>
+<p>La opción <code>-w admin</code>permite introducir directamente el password del administrador del servicio LDAP. Por defecto, el administrador tiene username <code>admin</code> y clave <code>admin</code>. Si eliminas <code>-w admin</code>, y lo cambias por <code>-W</code> preguntará la clave de admin de LDAP de forma interactiva.</p>
+<p>Para comprobar si el usuario se ha añadido con éxito, vamos a realizar la misma consulta anterior:</p>
+<pre><code>$ ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+
+# extended LDIF
+#
+# LDAPv3
+# base &lt;dc=example,dc=org&gt; with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# example.org
+dn: dc=example,dc=org
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: Example Inc.
+dc: example
+
+# carlos, example.org
+dn: uid=carlos,dc=example,dc=org
+cn: carloscano
+uid: carlos
+sn: 3
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uidNumber: 501
+gidNumber: 20
+homeDirectory: /home/carlos
+loginShell: /bin/bash
+gecos: carlos
+userPassword:: e2NyeXB0fXg=
+...
+</code></pre>
+<p>Vemos que el objeto <code>uid=carlos</code> ha sido creado y que está asociado a la rama <code>dc=example,dc=org</code>del directorio LDAP.</p>
+<h3 id="persistencia-de-datos">Persistencia de datos</h3>
+<p>Después de añadir un nuevo usuario, echa abajo el contenedor correspondiente con</p>
+<pre><code>podman rm -f &lt;id contenedor&gt;
+</code></pre>
+<p>Y vuelve a lanzarlo con</p>
+<pre><code>podman run -d -p 20389:389 --name openldap-server -t osixia/openldap:1.5.0 
+</code></pre>
+<p>Lanza de nuevo la consulta:</p>
+<pre><code>$ ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+</code></pre>
+<p>y comprueba si el usuario sigue existiendo. ¿Qué ocurre?</p>
+<p><strong>No hay persistencia de datos (los datos solo existen dentro del contenedor), así que cualquier modificación en los datos de la imagen se elimina cuando echamos abajo el servicio</strong>. Para evitarlo, debemos montar volúmenes de datos permanentes para el directorio LDAP, de forma que cualquier cambio en los datos sea visible y persistente fuera del contenedor, incluso si el servicio se cayera o se interrumpiera.</p>
+<p>Para ello, creamos dos carpetas para almacenar datos de LDAP:</p>
+<pre><code>sudo mkdir -p ./data/slapd/config
+sudo mkdir ./data/slapd/database
+</code></pre>
+<p>Y concedemos los permisos adecuados sobre estas carpetas. En linux, las asociamos al usuario con que se ejecuten los contenedores. Como sólo diponemos de uno (el nuestro propio), pues a ese:</p>
+<pre><code>
+sudo chmod 775 -R /path-que-quieras/data/slapd
+sudo chown -R $USER:$USER /path-que-quieras/data/slapd
+</code></pre>
+<p>Ahora, montamos estas carpetas como volúmenes de datos permanentes al lanzar el contenedor <strong>(reemplazar los puertos con algunos del rango que se os haya asignado)</strong>:</p>
+<pre><code>podman run -p 20389:389 -p 20636:636 --volume /path-completo-hasta/data/slapd/database:/var/lib/ldap --volume /path-completo-hasta/data/slapd/config:/etc/ldap/slapd.d --name openldap-server  --detach osixia/openldap:1.5.0 
+</code></pre>
+<p>Si tienes un firewall activo, debes permitir que los puertos 20389 y 20636 estén accesibles para que LDAP escuche las peticiones de servicio a través de ellos con el siguiente código. Si no tienes un firewall activo, omite este paso (Ése es el caso en <code>doker.ugr.es</code>, donde no tenéis que gestionar el firewall):</p>
+<pre><code>##Si usas UFW
+sudo ufw allow 20389/tcp
+sudo ufw allow 20636/tcp
+##Si usas Firewalld
+sudo firewall-cmd --add-port=20389/tcp --permanent
+sudo firewall-cmd --add-port=20636/tcp --permanent
+sudo firewall-cmd --reload
+</code></pre>
+<p>Ahora, vuelve a crear el usuario que creaste antes. En el ejemplo, creoamos dos usuarios: carlos y billy (hacemos un fichero billy.ldif con igual estructura que la que se mostró para carlos.ldif pero con otros datos de usuario):</p>
+<pre><code>ldapadd -x -w admin -D &quot;cn=admin,dc=example,dc=org&quot; -f billy.ldif
+ldapadd -x -w admin -D &quot;cn=admin,dc=example,dc=org&quot; -f carlos.ldif
+</code></pre>
+<p>Compruebo que los usuarios se han creado bien:</p>
+<pre><code>docker exec openldap-server ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+</code></pre>
+<p>echamos abajo el servicio openldap con podman rm -f <containerID>, lo vuelvo a levantar y compruebo con la consulta que los usuarios siguen existiendo:</p>
+<pre><code>podman exec openldap-server ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+</code></pre>
+<p>Ahora sí, los datos persisten más allá del ámbito del contenedor.</p>
+<h2 id="cambiar-el-password-de-un-usuario-en-ldap">Cambiar el Password de un usuario en LDAP</h2>
+<p>Para cambiar el password del usuario <code>carlos</code>creado anteriormente:</p>
+<pre><code>ldappasswd -s &lt;new_user_password&gt; -w admin -D &quot;cn=admin,dc=example,dc=org&quot; -x &quot;uid=carlos,dc=example,dc=org&quot;
+</code></pre>
+<p>Revisa: <a href="https://www.centos.org/docs/5/html/CDS/cli/8.0/Configuration_Command_File_Reference-Command_Line_Utilities-ldappasswd.html">https://www.centos.org/docs/5/html/CDS/cli/8.0/Configuration_Command_File_Reference-Command_Line_Utilities-ldappasswd.html</a>  para más información sobre el mandato.</p>
+<p>Ahora prueba:</p>
+<pre><code>ldapsearch -x -H ldap://localhost:20389 -b dc=example,dc=org -D &quot;cn=admin,dc=example,dc=org&quot; -w admin
+</code></pre>
+<p>Esto devolverá el directorio con el último usuario modificado.</p>
+<h3 id="modificando-cuentas-de-usuario-con-ldap-delete-modify">Modificando cuentas de usuario con LDAP: DELETE, MODIFY.</h3>
+<p>La sintaxis es la siguiente:</p>
+<pre><code>ldapmodify [ options ]
+
+ldapmodify [ options ] &lt; LDIFfile
+
+ldapmodify [ options ] -f LDIFfile
+</code></pre>
+<p>LDIFfile es, de nuevo, un archivo de texto LDIF que contiene nuevas entradas o actualizaciones a entradas existentes en el directorio LDAP.</p>
+<p>Por ejemplo, hemos creado el siguiente fichero LDIF ``carlos_modify.ldif<code>para cambiar el atributo loginShell del usuario</code>carlos```.</p>
+<pre><code>dn: cn=carlos,dc=example,dc=org
+changetype: modify
+replace: loginShell
+loginShell: /bin/csh
+</code></pre>
+<p>Luego ejecuto los cambios:</p>
+<pre><code>ldapmodify -x -D &quot;cn=admin,dc=example,dc=org&quot; -w admin -H ldap:// -f carlos_modify.ldif
+</code></pre>
+<p>Actualizará <code>cn=carlos</code> con un nuevo <code>loginShell</code>, en este caso ``/bin/csh```.</p>
+<p>Comprueba que los cambios se han hecho:</p>
+<pre><code>...
+# carlos, example.org
+dn: uid=carlos,dc=example,dc=org
+cn: carloscano
+uid: carlos
+sn: 3
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uidNumber: 501
+gidNumber: 20
+homeDirectory: /home/carlos
+loginShell: /bin/csh
+gecos: carlos
+userPassword:: e2NyeXB0fXg=
+...
+
+</code></pre>
+<p>Añade una entrada a un usuario LDAP. Crea un nuevo fichero <code>carlos_add_descrip.ldif</code> y añade:</p>
+<pre><code>dn: cn=carlos,ou=Users,dc=example,dc=org
+changetype: modify
+add: description
+description: Carlos Cano
+</code></pre>
+<p>Ejecuta el siguiente comando:</p>
+<pre><code>ldapmodify -x -D &quot;cn=admin,dc=example,dc=org&quot; -w password -H ldap:// -f carlos_add_descrip.ldif
+</code></pre>
+<p>Ahora, comprueba los cambios:</p>
+<pre><code>ldapsearch -H ldap://localhost:20389 -LL -b ou=Users,dc=example,dc=org -x
+</code></pre>
+<p>Y finalmente borra la descripción. Crea un nuevo dichero i.e. <code>carlos_del_descr.ldif</code></p>
+<pre><code>dn: cn=carlos,ou=Users,dc=example,dc=org
+changetype: modify
+delete: description
+</code></pre>
+<p>Luego ejecuta:</p>
+<pre><code>ldapmodify -x -D &quot;cn=admin,dc=example,dc=org&quot; -w password -H ldap:// -f carlos_del_descr.ldif
+</code></pre>
+<p>Comprueba:</p>
+<pre><code>ldapsearch -H ldap://localhost:20389 -LL -b ou=Users,dc=example,dc=org -x
+</code></pre>
+<p>Verifica si la entidad ya no está.</p>
+<h2 id="añadir-una-ou-organizational-unit-a-ldap">Añadir una OU (organizational unit) a LDAP:</h2>
+<p>Crear un nuevo fichero <code>ldif</code> . i.e. <code>add_new_ou.ldif</code> con :</p>
+<pre><code>dn: ou=People,dc=example,dc=org
+ou: People
+objectClass: top
+objectClass: organizationalUnit
+description: Parent object of all PEOPLE accounts
+</code></pre>
+<p>Luego usa:</p>
+<pre><code>ldapadd -x -D cn=admin,dc=example,dc=org -w admin -c -f add_new_ou.ldif
+</code></pre>
+<p>Ahora tienes una nueva categoría &quot;People&quot; dentro del árbol asociado al directorio LDAP.</p>
+<h2 id="buscando-y-encontrado-dentro-del-dit">Buscando y encontrado dentro del DIT</h2>
+<p>Por ejemplo, si queremos encontrar todos los objetos almacenados bajo la categoría <code>ou=People</code></p>
+<pre><code>ldapsearch -H ldap://localhost:20389 -LL -b ou=People,dc=example,dc=org -x
+</code></pre>
+<p>Cualquier combinación de  <code>ou</code>, <code>dc</code>, ... está permitida para buscar dentro del DIT.</p>
+<h2 id="32-despliegue-de-owncloud">3.2. Despliegue de ownCloud</h2>
+<p>El despliegue de un servicio ownCloud requiere desplegar un contenedor con la aplicación web y otro para el SGBD (MariaDB, en el ejemplo) y la gestión de memoria caché con Redis para mejorar el rendimiento del sistema. Nos centraremos en esta sección en cómo desplegar ownCloud y MariaDB. Las instrucciones siguientes despliegan los contenedores de forma individual con docker - podéis tomarlos como punto de partida para hacer despliegues con orquestadores de contenedores.</p>
+<h3 id="despliegue-de-contenedor-owncloud">Despliegue de contenedor ownCloud</h3>
+<p><strong>(reemplazar el puerto 20080 con uno que se os haya asignado)</strong></p>
+<pre><code>podman pull owncloud
+podman run -d -p 20080:80 owncloud:latest
+</code></pre>
+<h3 id="despliegue-de-contenedor-mariadb">Despliegue de contenedor MariaDB</h3>
+<p><a href="https://hub.docker.com/_/mariadb">MariaDB Server</a> es un servicio de altas prestaciones para implementar bases de datos relacionales que proviene de MySQL. Para desplegar un contenedor con este servicio, proceder así:</p>
+<pre><code>podman pull mariadb
+podman run --detach --name mariadb --env MARIADB_USER=&lt;nombre_usuario&gt; --env MARIADB_PASSWORD=&lt;contraseña&gt; --env MARIADB_ROOT_PASSWORD=&lt;contraseña-root&gt;  mariadb:latest
+</code></pre>
+<p>Sin embargo, con este despliegue de MariaDB, <a href="https://github.com/docker-library/docs/blob/master/mariadb/README.md#where-to-store-data"><strong>¿Dónde se almacenan los datos de MariaDB?</strong></a></p>
+<p>Para que el almacenamiento de los datos en MariaDB sea <strong>persistente</strong>, es necesario crear un directorio local y compartir este directorio con el contenedor de docker en el que se despliega la imagen de MariaDB. Para ello, echad abajo el contenedor anterior y, en su lugar, desplegad este otro.</p>
+<pre><code>$ mkdir &lt;path_al_directorio_deseado&gt;/MariaDB_data
+$ podman run --detach --name mariadb -v &lt;path_al_directorio_deseado&gt;:/var/lib/mysql --env MARIADB_DATABASE=test --env MARIADB_USER=&lt;nombre_usuario&gt; --env MARIADB_PASSWORD=&lt;contraseña&gt; --env MARIADB_ROOT_PASSWORD=&lt;contraseña_root&gt;  mariadb:latest
+</code></pre>
+<h3 id="integración-de-ldap-en-owncloud">Integración de LDAP en Owncloud</h3>
+<p>Una vez lanzado el servicio web de Owncloud y su backend (MariaDB y Redis), podéis visualizar este tutorial para integrar Owncloud con un servicio de LDAP existente:
+<a href="https://www.youtube.com/watch?v=Jd0JImHj3fk">https://www.youtube.com/watch?v=Jd0JImHj3fk</a></p>
+<p>Este manual también puede resultaros de ayuda: <a href="https://doc.owncloud.com/server/next/admin_manual/configuration/user/user_auth_ldap.html">https://doc.owncloud.com/server/next/admin_manual/configuration/user/user_auth_ldap.html</a>
+Y en esta web se explica con detenimiento el valor de los distintos campos en la integración de NextCloud (proyecto similar a OwnCloud) y LDAP: <a href="https://docs.nextcloud.com/server/22/admin_manual/configuration_user/user_auth_ldap.html">https://docs.nextcloud.com/server/22/admin_manual/configuration_user/user_auth_ldap.html</a></p>
+<h2 id="33-despliegue-de-haproxy">3.3. Despliegue de HAProxy</h2>
+<p>HAProxy es un <a href="https://www.cloudflare.com/es-es/learning/cdn/glossary/reverse-proxy/">proxy inverso</a> gratuito que aporta balanceo de carga y alta disponibilidad para aplicaciones basadas en HTTP y TCP. En los últimos años se ha convertido en un estándar <em>de-facto</em> y es muy popular en sitios web de mucho tráfico. En esta práctica, lo utilizaremos para repartir carga y construir una infraestructura de altas prestaciones atendiendo al Escenario 2.</p>
+<p>La configuración básica de HAProxy como balanceador requiere editar el archivo /etc/haproxy/haproxy.cfg para indicarle:</p>
+<ul>
+<li>frontend: IPs y puertos que HAProxy tiene que escuchar para recibir peticiones.</li>
+<li>backend: cuáles son las máquinas o los servicios finales a los que redirigir las peticiones de entrada.</li>
+</ul>
+<p>El manual de uso describe cómo construir un fichero de <a href="http://docs.haproxy.org/2.6/configuration.html#2">configuración de HAProxy</a> y en la red puedes ver <a href="https://www.haproxy.com/blog/haproxy-configuration-basics-load-balance-your-servers/">multitud de tutoriales</a> y <a href="https://chase-seibert.github.io/blog/2011/02/26/haproxy-quickstart-w-full-example-config-file.html">ejemplos de ficheros de configuración</a>.</p>
+<p>Por ejemplo, este es un fichero sencillo de configuración:</p>
+<pre><code>frontend http-in
+    bind *:80
+    default_backend testing
+backend testing
+    server  m1  ip_maquinaM1:80 maxconn 32
+    server  m2  ip_maquinaM2:80 maxconn 32
+    server  m3  ip_maquinaM3:80 maxconn 32
+</code></pre>
+<p>en el que definimos un front-end <code>http-in</code> y un backend <code>testing</code>. Este balanceador espera conexiones entrantes por el puerto 80 desde cualquier IP para redirigirlas a tres máquinas servidoras que escuchan por el puerto 80. La forma de reparto de carga de trabajo por defecto es <code>roundrobin</code>, pero puedes cambiar el algoritmo en la <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-haproxy-and-load-balancing-concepts">configuración de HAProxy</a>. <strong>(reemplazar los puertos con unos que se os haya asignado)</strong></p>
+<p>Siguiendo el ejemplo anterior, supongamos que tenemos tres répicas de una aplicación web dando servicio. A modo de ejemplo, utilizaremos la imagen de Docker <code>jmalloc/echo-server</code> para servir una aplicación web muy sencilla que simplemente responde con los detalles de la petición HTTP que recibe. Creamos una red puente de Docker y desplegamos tres de estos servicios con Docker:</p>
+<pre><code>$ podman network create --driver=bridge mynetwork
+$ podman run -d \
+   --net mynetwork --name web1 jmalloc/echo-server:latest
+   
+$ podman run -d \
+   --net mynetwork --name web2 jmalloc/echo-server:latest
+   
+$ podman run -d \
+   --net mynetwork --name web3 jmalloc/echo-server:latest
+
+$ podman ps -a 
+
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS                     PORTS                                                                                                                                  NAMES
+e54dc1e8a748   jmalloc/echo-server:latest            &quot;/bin/echo-server&quot;       27 seconds ago   Up 26 seconds              8080/tcp                                                                                                                               web3
+4636d35b8c55   jmalloc/echo-server:latest            &quot;/bin/echo-server&quot;       31 seconds ago   Up 29 seconds              8080/tcp                                                                                                                               web2
+6bf5ecded52a   jmalloc/echo-server:latest            &quot;/bin/echo-server&quot;       34 seconds ago   Up 33 seconds              8080/tcp                                                                                                                               web1
+
+</code></pre>
+<p>Estos contenedores escuchan el puerto 8080. Para enrutar el tráfico hacia ellos repartiendo la carga de trabajo, vamos a colocarles un HAProxy delante. Creamos un fichero haproxy.cfg en el directorio de trabajo actual que contenga lo siguiente:</p>
+<pre><code>
+global
+  stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+  log stdout format raw local0 info
+
+defaults
+  mode http
+  timeout client 10s
+  timeout connect 5s
+  timeout server 10s
+  timeout http-request 10s
+  log global
+
+frontend stats
+  bind *:8404
+  stats enable
+  stats uri /
+  stats refresh 10s
+
+frontend myfrontend
+  bind :80
+  default_backend webservers
+
+backend webservers
+  server s1 web1:8080 check
+  server s2 web2:8080 check
+  server s3 web3:8080 check
+</code></pre>
+<p>Algunos detalles sobre este fichero de configuración:</p>
+<ul>
+<li>Sección <code>global</code> la línea <code>stats socket</code> habilita el API de ejecución de HAProxy y  la recarga de HAProxy. No entraremos en detalle en el uso de estos parámetros (podéis encontrar más información en el manual de HAProxy, ya que no son parámetros imprescindibles para el correcto funcionamiento de este ejemplo.</li>
+<li>El frontend llamado <code>stats</code> escucha en el puerto 8404 y habilita el Dashboard de estadísticas de HAProxy para medir el rendimiento del sistema y el reparto de carga. Es opcional también.</li>
+<li>El frontend llamado <code>myfrontend</code> escucha el puerto 80 y reparte las peticiones a los servidores listados en el backend llamado <code>webservers</code>.</li>
+<li>El backend <code>webservers</code>lista los servidores entre los que se reparten las peticiones desde el frontend <code>myfrontend</code>. En lugar de especificar la dirección IP de cada servidor, utilizamos sus nombres web1, web2 y web3 porque hemos creado una red puente de Docker que permite hacer el routing DNS de los servicios por su nombre.</li>
+</ul>
+<p>Ahora, creamos y ejecutamos un contenedor con HAProxy <strong>(reemplazar los puertos con unos que se os haya asignado)</strong>:</p>
+<pre><code>$ podman run -d \
+   --name haproxy \
+   --net mynetwork \
+   -v $(pwd):/usr/local/etc/haproxy:ro \
+   -p 80:80 \
+   -p 8404:8404 \
+   haproxytech/haproxy-alpine:2.4
+</code></pre>
+<pre><code>$ podman ps 
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED              STATUS                PORTS                                                                                                                                  NAMES
+d9c3e714b7fb   haproxytech/haproxy-alpine:2.4        &quot;/docker-entrypoint.…&quot;   6 seconds ago        Up 5 seconds          0.0.0.0:80-&gt;80/tcp, 0.0.0.0:8404-&gt;8404/tcp                                                                                             haproxy
+bba173ccae97   jmalloc/echo-server:latest            &quot;/bin/echo-server&quot;       52 seconds ago       Up 52 seconds         8080/tcp                                                                                                                               web3
+cd6da8fd2328   jmalloc/echo-server:latest            &quot;/bin/echo-server&quot;       56 seconds ago       Up 55 seconds         8080/tcp                                                                                                                               web2
+5ca725df4f1f   jmalloc/echo-server:latest            &quot;/bin/echo-server&quot;       About a minute ago   Up 59 seconds         8080/tcp                                                                                                                               web1
+</code></pre>
+<p>Para comprobar el funcionamiento de esta arquitectura, abre un navegador web en la dirección (<a href="http://localhost/">http://localhost/</a>) y comprueba que la aplicación web <code>echo-server</code>está funcionando, obteniendo un mensaje similar a éste:</p>
+<pre><code>Request served by 5ca725df4f1f
+
+GET / HTTP/1.1
+
+Host: localhost
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Encoding: gzip, deflate, br
+Accept-Language: es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3
+Cookie: ocgkh74g5c4m=b74b66f327faaa2e68773ac34481e1b5; grafana_session=79f4c3721c108e17a0a15da5739e2a4e; 5d89dac18813e15aa2f75788275e3588=53aunj9p4rt45k4tctcgsjaj6b; oczzl3fon5pt=ee9491c851c45b7388bd7a7b4c0f3109; ocegefixbh9u=4a7c10e7e70159b88d80abe83e98b1e6; oc4fmp8ar920=gimslp19hqip3std70smnhh3tr; oc_sessionPassphrase=x6V52BnIMtXdf81pqW9%2FbXsErUpyBo14mZpEqIQ0W2HMwqLoxSMgIZAaSzOZpHyjJr3skgZ2f4HN3316bBs85BUDoBoaDHtuiujfo2RCLAxbJTimsN0LVRXEF2Y%2BoWmc
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/109.0
+
+</code></pre>
+<p>El código <code>Request served by 5ca725df4f1f</code>hace referencia al contenedor que ha ofrecido el servicio, comprueba que coincide con uno de los contenedores desplegados para echo-server anteriormente. HAProxy irá repartiendo las peticiones recibidas entre los tres servidores con un enfoque <code>round-robin</code> (algoritmo por defecto).</p>
+<p>Puedes consultar las estadísticas de monitoreo de los tres servicios abriendo con tu navegador las estadísticas ofrecidas por HAProxy en (<a href="http://localhost:8404/">http://localhost:8404/</a>).</p>
+<p>Puedes hacer cambios en el fichero de configuración haproxy.cfg y relanzar el servidor HAProxy sin afectar al servicio utilizando <code>podman kill</code>:</p>
+<pre><code>$ podman kill -s HUP haproxy
+</code></pre>
+<p>Para eliminar los contenedores y la red, procede así:</p>
+<pre><code>$ podman stop web1 &amp;&amp; docker rm web1
+$ podman stop web2 &amp;&amp; docker rm web2
+$ podman stop web3 &amp;&amp; docker rm web3
+$ podman stop haproxy &amp;&amp; docker rm haproxy
+$ podman network rm mynetwork
+</code></pre>
+<p>En esta referencia puedes encontrar los típicos problemas que se presentan al desplegar HAProxy y cómo resolverlos: <a href="https://www.digitalocean.com/community/tutorial_series/common-haproxy-errors">Troubleshooting HAProxy Errors</a></p>
+<h1 id="entrega-de-la-práctica-a-traves-de-prado-documentación-y-evaluación-de-la-práctica">Entrega de la práctica a traves de PRADO. Documentación y evaluación de la práctica.</h1>
+<p>Para que la práctica sea evaluable debe ser entregada dentro del plazo requerido indicado en PRADO. Todas las prácticas que estén fuera de plazo no serán evaluadas y no podrán defenderse. Además de la entrega a través de PRADO, todos los estudiantes deben realizar una DEFENSA de la práctica, a la que serán convocados por el profesor en horario de clase. En dicha defensa, el estudiante desplegará los servicios solicitados por el profesor y justificará las decisiones tomadas y los detalles de configuración ante las preguntas del profesor. En caso de no justificar adecuadamente sus respuestas o no exhibir los conocimientos mínimos necesarios, la calificación de la práctica será <em>Suspenso</em>.</p>
+<p>El estudiante <strong>deberá entregar un .zip con la documentación y todos los ficheros necesarios para el despliegue de los servicios que ha creado</strong>.</p>
+<p>La <strong>documentación</strong> de la entrega debe contener:</p>
+<ul>
+<li>
+<p><a href="http://README.html">README.md</a>: fichero en formato markdown llamado  que contenga la documentación de la práctica que incluya los siguientes apartados:</p>
+<ul>
+<li>
+<p>Nombre del alumno</p>
+</li>
+<li>
+<p>Entorno de desarrollo y de producción utilizado. Especificar con detalle las versiones de sistema operativo, máquinas virtuales, gestor de contenedores, etc.</p>
+</li>
+<li>
+<p>Descripción de la práctica y problema a resolver</p>
+</li>
+<li>
+<p>Servicios desplegados y su configuración. Incluye todos los detalles necesarios. Incluye las instrucciones para lanzar la provisión de servicios.</p>
+</li>
+<li>
+<p>Conclusiones</p>
+</li>
+<li>
+<p>Referencias bibliográficas y recursos utilizados</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="plazos-de-entrega">Plazos de entrega</h2>
+<p>Plazo de entrega en PRADO: Hasta el 30 de abril de 2026 a las 23:59 hrs.</p>
+<h2 id="defensa-de-la-práctica">Defensa de la práctica</h2>
+<p>Será después de la entrega en horario de clase de prácticas. El profesor irá indicando en clase cuándo se realizará cada defensa.</p>
+<h2 id="criterios-de-evaluación">Criterios de evaluación</h2>
+<p>Esta práctica incluye una tarea obligatoria para superar la práctica y dos tareas adicionales para alcanzar la máxima calificación. La tarea obligatoria para superar la práctica es la Tarea 1 descrita en la Sección 2.2. Las tareas adicionales para alcanzar la máxima puntuación son las tareas 2 y 3 de la Sección 2.2. Los criterios de evaluación específicos que se tendrán en cuenta para estas tareas son:</p>
+<p><strong>Evaluación de la tarea obligatoria para superar la práctica</strong>:</p>
+<ul>
+<li>Se evaluará si el estudiante despliega con éxito los servicios según la arquitectura descrita en el Escenario 1 con Docker o Docker-compose.</li>
+<li>Los ficheros de configuración y documentación deben incluir con todos los detalles necesarios.</li>
+<li>El despliegue de los servicios debe realizarse sin errores y los servicios deben funcionar correctamente.</li>
+<li>Se valorará que el estudiante cree al menos una nueva categoría de usuarios en LDAP y distintos usuarios nuevos para simular un entorno laboral pequeño pero realista.</li>
+</ul>
+<p><strong>Evaluación de las tareas adicionales para alcanzar la máxima calificación</strong>:</p>
+<p>Se evaluará:</p>
+<ul>
+<li>Documentación que incluya una descripción completa de los despliegues y los detalles de configuración.</li>
+<li>Despliegue con éxito de servicios según la arquitectura expuesta en el Escenario 2 de la práctica.</li>
+<li>Uso de Docker-compose y Kubernetes para despliegue con éxito de servicios. Se valorará que se realice un despliegue con Docker-compose y el mismo despliegue con Kubernetes.</li>
+<li>Proveer de alta disponibilidad con la replicación de, al menos, uno de los servicios ofrecidos.</li>
+<li>Proveer de un proxy invertido con balanceo de carga con HAProxy, la funcionalidad incluida en Kubernetes u otra herramienta de balanceo de carga.</li>
+</ul>
+<h1 id="referencias">REFERENCIAS</h1>
+<h2 id="ldap">LDAP</h2>
+<ul>
+<li><a href="https://www.openldap.org/doc/admin26/quickstart.html">https://www.openldap.org/doc/admin26/quickstart.html</a></li>
+<li><a href="https://computingforgeeks.com/run-openldap-server-in-docker-containers/#google_vignette">https://computingforgeeks.com/run-openldap-server-in-docker-containers/#google_vignette</a></li>
+<li><a href="https://github.com/osixia/docker-openldap">https://github.com/osixia/docker-openldap</a></li>
+</ul>
+<h2 id="haproxy">HAProxy</h2>
+<ul>
+<li><a href="http://docs.haproxy.org/2.6/intro.html">http://docs.haproxy.org/2.6/intro.html</a></li>
+</ul>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

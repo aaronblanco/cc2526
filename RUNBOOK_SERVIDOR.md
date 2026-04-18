@@ -65,3 +65,41 @@ bash scripts/check.sh
 ```
 
 Verifica que los usuarios LDAP y datos de ownCloud siguen presentes.
+
+## 7) Escenario 2 (HAProxy + replica de ownCloud)
+
+Para el escenario de alta disponibilidad se incluye un compose dedicado:
+
+```bash
+cd deploy/compose
+cp .env.example .env
+```
+
+Revisa en `.env` que los puertos de HAProxy estan dentro de tu rango asignado:
+
+- `HAPROXY_PORT` (frontend)
+- `HAPROXY_STATS_PORT` (estadisticas)
+
+Levanta escenario 2:
+
+```bash
+podman-compose -f docker-compose.scenario2.yml up -d
+```
+
+Comprueba servicios:
+
+```bash
+podman ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+```
+
+Accesos esperados:
+
+- ownCloud directo: `http://<host>:<OWNCLOUD_PORT>`
+- ownCloud balanceado por HAProxy: `http://<host>:<HAPROXY_PORT>`
+- stats HAProxy: `http://<host>:<HAPROXY_STATS_PORT>`
+
+Parada de escenario 2:
+
+```bash
+podman-compose -f docker-compose.scenario2.yml down
+```
