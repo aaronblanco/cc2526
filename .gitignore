@@ -1,6 +1,6 @@
 # Runtime data and secrets
 /data/
-/deploy/compose/.env
+
 
 # Editor/system
 .DS_Store

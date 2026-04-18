@@ -120,7 +120,7 @@ Nota: `OWNCLOUD_DOMAIN` debe incluir el puerto de acceso real, mientras que `OWN
 1. Levantar stack:
 
 ```bash
-podman-compose up -d
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
 ```
 
 2. Ver estado:
@@ -178,19 +178,19 @@ Si devuelve `Invalid credentials (49)`, revisar `LDAP_PASS` o reinicializar volu
 Importar OU People desde el archivo LDIF local:
 
 ```bash
-podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < ldif/01-ou-people.ldif
+podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < deploy/ldap/01-ou-people.ldif
 ```
 
 Importar usuario ana desde el archivo LDIF local:
 
 ```bash
-podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < ldif/02-user-ana.ldif
+podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < deploy/ldap/02-user-ana.ldif
 ```
 
 Importar usuario luis desde el archivo LDIF local:
 
 ```bash
-podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < ldif/03-user-luis.ldif
+podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < deploy/ldap/03-user-luis.ldif
 ```
 
 Verificar OU y usuarios:
@@ -199,7 +199,7 @@ Verificar OU y usuarios:
 podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b "ou=People,${BASE_DN}"
 ```
 
-Nota 1: este flujo usa los ficheros `ldif/01-ou-people.ldif`, `ldif/02-user-ana.ldif` y `ldif/03-user-luis.ldif` que estan en el directorio de trabajo local.
+Nota 1: este flujo usa los ficheros `deploy/ldap/01-ou-people.ldif`, `deploy/ldap/02-user-ana.ldif` y `deploy/ldap/03-user-luis.ldif` desde la raiz del proyecto.
 
 Nota 2: si aparece `Already exists`, el objeto ya estaba creado en una ejecucion previa.
 
@@ -210,27 +210,51 @@ Nota 3: si necesitas borrar y recrear los usuarios, elimina primero las entradas
 - Para arrancar o recrear lo necesario segun el compose:
 
 ```bash
-podman-compose up -d
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
 ```
 
 - Si los contenedores ya existen y estan parados, tambien puedes usar:
 
 ```bash
-podman-compose start
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml start
 ```
 
 - Si quieres reinicio completo del stack:
 
 ```bash
-podman-compose down
-podman-compose up -d
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml down
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
 ```
 
 Para volver a iniciar despues de una parada simple, tambien vale:
 
 ```bash
-podman-compose start
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml start
 ```
+
+### Cambio entre Escenario 1 y Escenario 2
+
+Para evitar mezclar volumenes y redes entre escenarios, usar distinto nombre de proyecto (`-p`) y su compose correspondiente.
+
+Escenario 1:
+
+```bash
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml stop
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml start
+podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml down
+```
+
+Escenario 2:
+
+```bash
+podman-compose -p cc-s2 -f docker-compose.escenario2.yml up -d
+podman-compose -p cc-s2 -f docker-compose.escenario2.yml stop
+podman-compose -p cc-s2 -f docker-compose.escenario2.yml start
+podman-compose -p cc-s2 -f docker-compose.escenario2.yml down
+```
+
+Nota: solo usar `down -v` cuando quieras borrar datos y reinicializar por completo el escenario.
 
 ### Integracion LDAP en OwnCloud
 
@@ -329,13 +353,13 @@ podman-compose up -d
 
 Estado actual de la Tarea 2 en este repositorio:
 
-- Compose dedicado creado: `deploy/compose/docker-compose.scenario2.yml`
+- Compose dedicado creado: `docker-compose.escenario2.yml`
 - Configuracion de HAProxy lista para balanceo: `deploy/haproxy/haproxy.cfg`
 - Guia de verificacion creada: `VERIFICACION_ESCENARIO2.md`
 
 Siguiente paso operativo para Tarea 2:
 
-1. Levantar escenario 2 con `podman-compose -f deploy/compose/docker-compose.scenario2.yml up -d`.
+1. Levantar escenario 2 con `podman-compose -p cc-s2 -f docker-compose.escenario2.yml up -d`.
 2. Verificar backends `oc1` y `oc2` en stats de HAProxy.
 3. Validar login LDAP y persistencia tambien a traves del frontend de HAProxy.
 
