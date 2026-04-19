@@ -363,24 +363,207 @@ Siguiente paso operativo para Tarea 2:
 2. Verificar backends `oc1` y `oc2` en stats de HAProxy.
 3. Validar login LDAP y persistencia tambien a traves del frontend de HAProxy.
 
-## Tarea 3 - Enunciado y plan de trabajo
+## Tarea 3 - Guia paso a paso (docker-compose y Kubernetes)
 
 **Enunciado oficial:**
 
 **3.- Diseno y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes.**
 
-Objetivo previsto para esta entrega:
+### Decision de arquitectura para Tarea 3
 
-- Partir de la arquitectura ya validada.
-- Preparar version equivalente para docker-compose.
-- Adaptar despliegue a Kubernetes y documentar ejecucion.
+Para maximizar la puntuacion, esta guia parte del Escenario 2 (HAProxy + replica de ownCloud) y lo despliega en dos tecnologias:
 
-Plan inicial para la Tarea 3:
+1. docker-compose (base de referencia funcional).
+2. Kubernetes (equivalente orquestado).
 
-1. Seleccionar base (Tarea 1 o Tarea 2) para migracion.
-2. Generar manifiestos Kubernetes (Deployments, Services, ConfigMaps y volumenes).
-3. Validar acceso a ownCloud, login LDAP y persistencia en Kubernetes.
-4. Incluir en la documentacion comandos de despliegue, pruebas y evidencias.
+### Objetivo tecnico de la guia
+
+- Repetir el mismo servicio con los mismos componentes: ownCloud, MariaDB, Redis, LDAP y HAProxy.
+- Mantener el rango de puertos asignado en servidor (20000-20010) para acceso externo.
+- Obtener evidencias reproducibles de despliegue, salud y pruebas funcionales.
+
+### Estructura de ficheros usada en Tarea 3
+
+- `docker-compose.escenario2.yml`
+- `deploy/haproxy/haproxy.cfg`
+- `deploy/ldap/01-ou-people.ldif`
+- `deploy/ldap/02-user-ana.ldif`
+- `deploy/ldap/03-user-luis.ldif`
+- `kubernetes/escenario2/00-namespace.yaml`
+- `kubernetes/escenario2/01-secret.yaml`
+- `kubernetes/escenario2/02-configmap.yaml`
+- `kubernetes/escenario2/03-pvc.yaml`
+- `kubernetes/escenario2/04-mariadb.yaml`
+- `kubernetes/escenario2/05-redis.yaml`
+- `kubernetes/escenario2/06-ldap.yaml`
+- `kubernetes/escenario2/07-ldap-seed-job.yaml`
+- `kubernetes/escenario2/08-owncloud.yaml`
+- `kubernetes/escenario2/09-haproxy.yaml`
+
+### Fase A - Despliegue con docker-compose (referencia)
+
+#### A.1. Preparacion
+
+```bash
+cp deploy/compose/.env.example deploy/compose/.env
+```
+
+Revisar valores minimos:
+
+- `OWNCLOUD_DOMAIN`
+- `OWNCLOUD_TRUSTED_DOMAINS`
+- `OWNCLOUD_ADMIN_USER`
+- `OWNCLOUD_ADMIN_PASSWORD`
+- `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`
+- `LDAP_ADMIN_PASSWORD`
+
+#### A.2. Arranque de Escenario 2
+
+```bash
+podman-compose -p cc-s2 -f docker-compose.escenario2.yml up -d
+podman ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+```
+
+#### A.3. Comprobaciones minimas
+
+```bash
+podman logs --tail 100 cc-haproxy
+podman logs --tail 100 cc-owncloud
+podman logs --tail 100 cc-owncloud2
+```
+
+Validar:
+
+- Frontend ownCloud por HAProxy en puerto `20003`.
+- Stats de HAProxy en puerto `20004`.
+- Login con usuario LDAP (`ana` o `luis`).
+
+### Fase B - Despliegue equivalente en Kubernetes
+
+#### B.1. Preparacion del cluster (Minikube)
+
+```bash
+minikube delete -p minikube --all --purge
+minikube config set rootless true
+minikube start -p minikube --driver=podman --container-runtime=containerd
+minikube kubectl -- get nodes
+```
+
+Nota: si `kubectl` no esta en PATH, utilizar siempre `minikube kubectl --`.
+
+#### B.2. Aplicacion de manifiestos
+
+Desde la raiz del repo:
+
+```bash
+minikube kubectl -- apply -f kubernetes/escenario2/00-namespace.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/01-secret.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/02-configmap.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/03-pvc.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/04-mariadb.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/05-redis.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/06-ldap.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/07-ldap-seed-job.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/08-owncloud.yaml
+minikube kubectl -- apply -f kubernetes/escenario2/09-haproxy.yaml
+```
+
+#### B.3. Verificacion de estado
+
+```bash
+minikube kubectl -- -n cc-practica1 get pods
+minikube kubectl -- -n cc-practica1 get svc
+minikube kubectl -- -n cc-practica1 get jobs
+minikube kubectl -- -n cc-practica1 get endpoints owncloud
+```
+
+Resultado esperado:
+
+- `ldap`, `mariadb`, `redis`, `owncloud`, `haproxy` en `Running`.
+- `ldap-seed` en `Completed`.
+- `endpoints owncloud` con IP interna y puerto `8080`.
+
+#### B.4. Acceso externo en rango permitido
+
+En Kubernetes, el endpoint `10.x.x.x:8080` es interno del cluster.
+El acceso desde fuera debe hacerse por HAProxy en los puertos del rango asignado:
+
+- ownCloud: `http://<minikube-ip>:20003`
+- stats HAProxy: `http://<minikube-ip>:20004`
+
+Comprobar IP:
+
+```bash
+minikube ip
+```
+
+#### B.5. Escalado de ownCloud (replicacion)
+
+Una vez estable la replica inicial:
+
+```bash
+minikube kubectl -- -n cc-practica1 scale deployment owncloud --replicas=2
+minikube kubectl -- -n cc-practica1 get pods -l app=owncloud -w
+```
+
+### Fase C - Validacion funcional de entrega
+
+#### C.1. Prueba LDAP
+
+```bash
+minikube kubectl -- -n cc-practica1 exec deploy/ldap -- \
+	ldapsearch -x -H ldap://127.0.0.1:389 -b dc=practica1,dc=org '(uid=ana)'
+```
+
+#### C.2. Prueba web
+
+1. Abrir ownCloud por HAProxy (`20003`).
+2. Iniciar sesion con usuario LDAP.
+3. Subir un fichero de prueba.
+
+#### C.3. Prueba de persistencia
+
+```bash
+minikube kubectl -- -n cc-practica1 rollout restart deployment owncloud
+minikube kubectl -- -n cc-practica1 get pods -l app=owncloud -w
+```
+
+Comprobar que el fichero de prueba sigue disponible.
+
+### Fase D - Checklist final Tarea 3
+
+- [ ] Escenario 2 operativo en docker-compose.
+- [ ] Escenario equivalente desplegado en Kubernetes.
+- [ ] LDAP sembrado y usuarios visibles.
+- [ ] ownCloud accesible por HAProxy en puerto externo permitido.
+- [ ] Replica ownCloud creada (2 pods).
+- [ ] Login LDAP validado en ownCloud.
+- [ ] Persistencia validada tras reinicio de pods.
+- [ ] Evidencias (salidas, logs y capturas) recopiladas para entrega.
+
+### Fase E - Recuperacion rapida ante incidencias comunes
+
+1. API de Kubernetes rechaza conexion:
+
+```bash
+minikube status
+minikube start -p minikube --driver=podman --container-runtime=containerd
+minikube update-context -p minikube
+```
+
+2. Job `ldap-seed` no se actualiza por inmutabilidad:
+
+```bash
+minikube kubectl -- -n cc-practica1 delete job ldap-seed
+minikube kubectl -- apply -f kubernetes/escenario2/07-ldap-seed-job.yaml
+```
+
+3. HAProxy queda `Pending` por puertos en nodo unico:
+
+```bash
+minikube kubectl -- -n cc-practica1 delete pod -l app=haproxy
+minikube kubectl -- -n cc-practica1 get pods -l app=haproxy -w
+```
 
 ## Conclusiones
 
