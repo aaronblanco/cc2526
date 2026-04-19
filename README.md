@@ -445,11 +445,14 @@ Validar:
 ```bash
 minikube delete -p minikube --all --purge
 minikube config set rootless true
-minikube start -p minikube --driver=podman --container-runtime=containerd
+minikube start -p minikube --driver=podman --container-runtime=containerd \
+	--extra-config=apiserver.service-node-port-range=20000-20010
 minikube kubectl -- get nodes
 ```
 
 Nota: si `kubectl` no esta en PATH, utilizar siempre `minikube kubectl --`.
+
+Nota breve importante: para exponer HAProxy exactamente en 20003 y 20004 solo con manifiestos, el cluster debe arrancarse con el rango `service-node-port-range=20000-20010`.
 
 #### B.2. Aplicacion de manifiestos
 
@@ -486,15 +489,15 @@ Resultado esperado:
 #### B.4. Acceso externo en rango permitido
 
 En Kubernetes, el endpoint `10.x.x.x:8080` es interno del cluster.
-El acceso desde fuera debe hacerse por HAProxy en los puertos del rango asignado:
+El acceso desde fuera debe hacerse por el Service de HAProxy (NodePort) en los puertos del rango asignado:
 
-- ownCloud: `http://<minikube-ip>:20003`
-- stats HAProxy: `http://<minikube-ip>:20004`
+- ownCloud: `http://docker.ugr.es:20003`
+- stats HAProxy: `http://docker.ugr.es:20004`
 
-Comprobar IP:
+Comprobar que el Service publica esos puertos:
 
 ```bash
-minikube ip
+minikube kubectl -- -n cc-practica1 get svc haproxy -o wide
 ```
 
 #### B.5. Escalado de ownCloud (replicacion)
@@ -558,11 +561,12 @@ minikube kubectl -- -n cc-practica1 delete job ldap-seed
 minikube kubectl -- apply -f kubernetes/escenario2/07-ldap-seed-job.yaml
 ```
 
-3. HAProxy queda `Pending` por puertos en nodo unico:
+3. NodePort fuera de rango en API server:
 
 ```bash
-minikube kubectl -- -n cc-practica1 delete pod -l app=haproxy
-minikube kubectl -- -n cc-practica1 get pods -l app=haproxy -w
+minikube delete -p minikube --all --purge
+minikube start -p minikube --driver=podman --container-runtime=containerd \
+	--extra-config=apiserver.service-node-port-range=20000-20010
 ```
 
 ## Conclusiones
