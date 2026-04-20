@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_ENV="$ROOT_DIR/deploy/compose/.env"
 
 if [ ! -f "$COMPOSE_ENV" ]; then
-	echo "[ERROR] Falta deploy/compose/.env. Crea el archivo desde .env.example."
+	echo "[ERROR] Falta deploy/compose/.env. Crea ese archivo antes de inicializar LDAP."
 	exit 1
 fi
 

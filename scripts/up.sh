@@ -18,8 +18,8 @@ run_compose() {
 cd "$COMPOSE_DIR"
 
 if [ ! -f .env ]; then
-  cp .env.example .env
-  echo "[INFO] Se ha creado .env desde .env.example. Editalo antes de exponer servicios en remoto."
+  echo "[ERROR] Falta deploy/compose/.env. Crea ese archivo antes de arrancar el stack."
+  exit 1
 fi
 
 mkdir -p "$ROOT_DIR/data/slapd/config" "$ROOT_DIR/data/slapd/database" "$ROOT_DIR/data/mariadb" "$ROOT_DIR/data/owncloud"

@@ -1,462 +1,299 @@
 # Practica 1 - Despliegue de servicio OwnCloud
 
-## Nombre del alumno
+## Datos del alumno
 
-- Nombre y apellidos: Aaron Blanco Alvarez
+- Nombre y apellidos: Aarón Blanco Álvarez
 - Correo UGR: aaronblancoalv@correo.ugr.es
 - Grupo de practicas: 1
 
-## Entorno de desarrollo y de produccion utilizado
+## Entorno de desarrollo y produccion
 
-### Entorno de desarrollo
+### Desarrollo
 
 - Sistema operativo local: Windows 11
-- Cliente SSH: PuTTY
 - Shell local: PowerShell
 - Editor: VS Code
 
-### Entorno de produccion
+### Produccion / laboratorio
 
-- Acceso: servidor remoto Linux por SSH, sin privilegios de administracion
-- Rango de puertos asignado: 20000-20010
+- Acceso: servidor Linux remoto por SSH, sin privilegios de administrador
 - Motor de contenedores: Podman
-- Orquestador usado: podman-compose
-- Maquinas virtuales adicionales: no utilizadas
+- Orquestacion: podman compose / podman-compose
+- Rango de puertos asignado: 20000-20010
 
-### Comandos para registrar versiones (evidencia)
+### Comandos de evidencia de versiones
 
 ```bash
 uname -a
 cat /etc/os-release
 podman --version
+podman compose version
 podman-compose --version
 ```
 
-## Descripcion de la practica y problema a resolver
+## Resumen ejecutivo
 
-La practica consiste en desplegar OwnCloud con arquitectura de microservicios en contenedores, incorporando autenticacion LDAP, base de datos y cache.
+Este repositorio contiene la base de la Practica 1 y la documentacion necesaria para reproducir dos escenarios:
 
-Problemas que se resuelven:
+- Escenario 1: OwnCloud con MariaDB, Redis y LDAP.
+- Escenario 2: OwnCloud con HAProxy y una replica de ownCloud, ademas de MariaDB, Redis y LDAP.
 
-- Servicio de ficheros multiusuario con OwnCloud.
-- Autenticacion centralizada con LDAP.
-- Persistencia de datos tras reinicios.
-- Despliegue automatizable en entorno restringido (sin sudo).
+Archivos principales del repositorio:
 
-Arquitectura implementada hasta este punto (Escenario 1):
+- `deploy/compose/docker-compose.yml`: stack del Escenario 1.
+- `docker-compose.escenario2.yml`: stack del Escenario 2.
+- `deploy/compose/.env`: variables de entorno usadas por el stack base.
+- `deploy/ldap/*.ldif`: OU y usuarios LDAP.
+- `deploy/haproxy/haproxy.cfg`: configuracion de HAProxy.
 
-- OwnCloud (frontend web)
-- MariaDB (SGBD)
-- Redis (cache)
-- OpenLDAP (autenticacion)
+## Estructura inicial del proyecto
 
-## Estructura del documento por tareas evaluables
+Estructura minima de trabajo (vista con `tree`) sobre la que se ha construido la practica en la carpeta practica_1:
 
-Este documento se organiza siguiendo las tareas del enunciado oficial de la Practica 1:
+```text
+.
+├── deploy
+│   ├── compose
+│   │   ├── .env
+│   │   └── docker-compose.yml
+│   ├── haproxy
+│   │   └── haproxy.cfg
+│   └── ldap
+│       ├── 01-ou-people.ldif
+│       ├── 02-user-ana.ldif
+│       └── 03-user-luis.ldif
+├── docker-compose.escenario2.yml
+├── README.md
+├── VERIFICACION_ESCENARIO1.md
+└── VERIFICACION_ESCENARIO2.md
+```
 
-- Tarea 1: completada y verificada (Escenario 1).
-- Tarea 2: en preparacion y despliegue (Escenario 2 con HAProxy y replica).
-- Tarea 3: planificada (docker-compose y Kubernetes sobre tarea 1 o 2).
 
-## Tarea 1 - Enunciado y trabajo realizado
+## Tarea 1 - Escenario 1
 
-**Enunciado oficial (tarea minima obligatoria):**
+### Requisito del enunciado
 
-**1.- Diseno y despliegue de un servicio OwnCloud basado en contenedores segun la arquitectura descrita en el Escenario 1 (Ver seccion Tipos de arquitecturas de cloud propuestas). En particular, se requiere que este servicio incluya, al menos, 4 subservicios:**
+Desplegar OwnCloud con, al menos, estos servicios:
 
-- Servicio de alojamiento y gestion de archivos (ownCloud)
-- Sistema gestor de base de datos (SGBD): MariaDB, MySQL o PostgreSQL
+- OwnCloud
+- MariaDB, MySQL o PostgreSQL
 - Redis
-- LDAP (autenticacion de usuarios)
+- LDAP
 
-## Tarea 1 - Servicios desplegados y configuracion
+### Servicios y puertos
 
-### Estructura relevante del proyecto
+Puertos definidos en `deploy/compose/.env`:
 
-- ENUNCIADO.MD: enunciado original.
-- deploy/compose/docker-compose.yml: despliegue principal.
-- deploy/compose/.env.example: plantilla de variables.
-- deploy/ldap/01-ou-people.ldif: OU People.
-- deploy/ldap/02-user-ana.ldif: usuario ana.
-- deploy/ldap/03-user-luis.ldif: usuario luis.
-
-### Configuracion de puertos
-
-Asignacion utilizada dentro del rango 20000-20010:
-
-- 20000: OwnCloud
-- 20001: LDAP
-- 20002: LDAPS
-- 20003: reservado para HAProxy (Escenario 2)
-- 20004: reservado para stats de HAProxy (Escenario 2)
+- `20000`: OwnCloud
+- `20001`: LDAP
+- `20002`: LDAPS
+- `20003`: reservado para HAProxy
+- `20004`: reservado para estadisticas de HAProxy
 
 ### Variables de entorno
 
-Crear archivo de trabajo:
+Edita directamente `deploy/compose/.env` antes de exponer el servicio en remoto. Valores actuales:
+
+- `OWNCLOUD_PORT=20000`
+- `LDAP_PORT=20001`
+- `LDAPS_PORT=20002`
+- `OWNCLOUD_DOMAIN=localhost:20000`
+- `OWNCLOUD_TRUSTED_DOMAINS=localhost,127.0.0.1`
+- `OWNCLOUD_ADMIN_USER=admin`
+- `OWNCLOUD_ADMIN_PASSWORD=ChangeMeOwncloud123`
+- `DB_NAME=owncloud`
+- `DB_USER=owncloud`
+- `DB_PASSWORD=ChangeMeDb123`
+- `DB_ROOT_PASSWORD=ChangeMeRoot123`
+- `LDAP_ADMIN_PASSWORD=admin`
+
+Nota: `OWNCLOUD_DOMAIN` debe incluir el puerto de acceso real. `OWNCLOUD_TRUSTED_DOMAINS` solo debe contener hostnames o IPs, sin puerto.
+
+### Arranque del stack
+
+Desde la raiz de este repositorio:
 
 ```bash
-cp deploy/compose/.env.example deploy/compose/.env
+cd deploy/compose
+podman-compose --env-file .env up -d
 ```
 
-Valores minimos a revisar en deploy/compose/.env:
-
-- OWNCLOUD_PORT
-- LDAP_PORT
-- LDAPS_PORT
-- OWNCLOUD_DOMAIN
-- OWNCLOUD_TRUSTED_DOMAINS
-- OWNCLOUD_ADMIN_USER
-- OWNCLOUD_ADMIN_PASSWORD
-- DB_NAME
-- DB_USER
-- DB_PASSWORD
-- DB_ROOT_PASSWORD
-- LDAP_ADMIN_PASSWORD
-
-Nota: `OWNCLOUD_DOMAIN` debe incluir el puerto de acceso real, mientras que `OWNCLOUD_TRUSTED_DOMAINS` solo admite hostnames o IPs, sin puerto. Si accedes mediante túnel SSH, puedes dejar `localhost`; si accedes directamente al servidor, usa su IP o nombre real.
-
-### Provision manual de servicios (sin scripts)
-
-1. Levantar stack:
+### Verificacion basica
 
 ```bash
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
+cd deploy/compose
+podman-compose --env-file .env ps
+curl -fsS "http://localhost:20000" >/dev/null && echo "[OK] OwnCloud responde"
+podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b dc=practica1,dc=org >/dev/null && echo "[OK] LDAP responde"
 ```
 
-2. Ver estado:
+Comprobaciones esperadas:
 
-```bash
-podman ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-```
+- `cc-ldap` en `Up` y, si aplica, `healthy`.
+- `cc-db` en `Up` y, si aplica, `healthy`.
+- `cc-redis` en `Up` y, si aplica, `healthy`.
+- `cc-owncloud` en `Up`.
 
-3. Verificar salud LDAP y MariaDB:
+### Carga de LDAP
 
-```bash
-podman inspect cc-ldap --format "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}"
-podman inspect cc-db --format "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}"
-```
-
-4. Revisar logs si hay incidencia:
-
-```bash
-podman logs --tail 120 cc-ldap
-podman logs --tail 120 cc-db
-podman logs --tail 120 cc-owncloud
-```
-
-### Carga manual de LDAP desde archivos LDIF (flujo usado)
-
-Definir variables de trabajo LDAP. El `BASE_DN` debe coincidir con el dominio LDAP configurado en `deploy/compose/.env`:
+Carga manual de OU y usuarios:
 
 ```bash
 export LDAP_PASS='admin'
-export BASE_DN='dc=TU_DOMINIO,dc=org'
+export BASE_DN='dc=practica1,dc=org'
 export ADMIN_DN="cn=admin,${BASE_DN}"
-```
 
-Opcional (para no escribir la clave manualmente):
-
-```bash
-source .env
-export LDAP_PASS="$LDAP_ADMIN_PASSWORD"
-```
-
-Comprobar autenticacion de admin LDAP:
-
-```bash
-podman exec cc-ldap ldapwhoami -x -D "$ADMIN_DN" -w "$LDAP_PASS"
-```
-
-Resultado esperado de exito:
-
-```text
-dn:cn=admin,dc=practica1,dc=org
-```
-
-Si devuelve `Invalid credentials (49)`, revisar `LDAP_PASS` o reinicializar volumenes LDAP.
-
-Importar OU People desde el archivo LDIF local:
-
-```bash
 podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < deploy/ldap/01-ou-people.ldif
-```
-
-Importar usuario ana desde el archivo LDIF local:
-
-```bash
 podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < deploy/ldap/02-user-ana.ldif
-```
-
-Importar usuario luis desde el archivo LDIF local:
-
-```bash
 podman exec -i cc-ldap ldapadd -x -D "$ADMIN_DN" -w "$LDAP_PASS" < deploy/ldap/03-user-luis.ldif
 ```
 
-Verificar OU y usuarios:
+Verificacion de objetos creados:
 
 ```bash
 podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b "ou=People,${BASE_DN}"
 ```
 
-Nota 1: este flujo usa los ficheros `deploy/ldap/01-ou-people.ldif`, `deploy/ldap/02-user-ana.ldif` y `deploy/ldap/03-user-luis.ldif` desde la raiz del proyecto.
+Objetos que deben quedar creados:
 
-Nota 2: si aparece `Already exists`, el objeto ya estaba creado en una ejecucion previa.
+- `ou=People,dc=practica1,dc=org`
+- `uid=ana,ou=People,dc=practica1,dc=org`
+- `uid=luis,ou=People,dc=practica1,dc=org`
 
-Nota 3: si necesitas borrar y recrear los usuarios, elimina primero las entradas con `ldapdelete` y vuelve a importar los LDIF.
+### Inicio de sesion en OwnCloud
 
-### Arranque y reinicio de contenedores
+1. Abre OwnCloud en `http://localhost:20000`.
+2. Entra con el administrador definido en `.env`.
+3. Activa la app de LDAP si no estuviera activa.
+4. Configura la conexion LDAP con estos valores:
+   - Host: `ldap`
+   - Port: `389`
+   - Bind DN: `cn=admin,dc=practica1,dc=org`
+   - Bind password: `admin`
+   - Base DN: `dc=practica1,dc=org`
+   - User search attribute: `uid`
+   - Display name attribute: `cn`
+5. Prueba login con:
+   - `ana` / `ana12345`
+   - `luis` / `luis12345`
 
-- Para arrancar o recrear lo necesario segun el compose:
+### Persistencia
 
-```bash
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
-```
+La persistencia del escenario 1 se apoya en volumenes nombrados de Podman para LDAP, MariaDB y OwnCloud.
 
-- Si los contenedores ya existen y estan parados, tambien puedes usar:
+Prueba recomendada:
 
-```bash
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml start
-```
-
-- Si quieres reinicio completo del stack:
-
-```bash
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml down
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
-```
-
-Para volver a iniciar despues de una parada simple, tambien vale:
-
-```bash
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml start
-```
-
-### Cambio entre Escenario 1 y Escenario 2
-
-Para evitar mezclar volumenes y redes entre escenarios, usar distinto nombre de proyecto (`-p`) y su compose correspondiente.
-
-Escenario 1:
+1. Sube un archivo con el usuario LDAP `ana`.
+2. Deten el stack:
 
 ```bash
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml up -d
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml stop
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml start
-podman-compose -p cc-s1 -f deploy/compose/docker-compose.yml down
+cd deploy/compose
+podman-compose --env-file .env down
 ```
 
-Escenario 2:
+3. Levantalo de nuevo:
 
 ```bash
-podman-compose -p cc-s2 -f docker-compose.escenario2.yml up -d
-podman-compose -p cc-s2 -f docker-compose.escenario2.yml stop
-podman-compose -p cc-s2 -f docker-compose.escenario2.yml start
-podman-compose -p cc-s2 -f docker-compose.escenario2.yml down
+cd deploy/compose
+podman-compose --env-file .env up -d
 ```
 
-Nota: solo usar `down -v` cuando quieras borrar datos y reinicializar por completo el escenario.
+4. Comprueba que el archivo sigue disponible.
 
-### Integracion LDAP en OwnCloud
 
-Abrir OwnCloud en:
+## Tarea 2 - Escenario 2
 
-- http://<host-servidor>:20000
+### Requisito del enunciado
 
-Configuracion LDAP validada (paso a paso):
+Desplegar OwnCloud con alta disponibilidad e incluir:
 
-1. Iniciar sesion en OwnCloud con el admin local (`OWNCLOUD_ADMIN_USER` / `OWNCLOUD_ADMIN_PASSWORD`).
-
-2. Ir a Apps y activar **LDAP Integration**.
-	- Si no aparece en menu, abrir directamente `http://<host-servidor>:20000/index.php/settings/apps`.
-
-3. Ir a Settings > Admin > LDAP/AD Integration.
-
-4. En la pestaña **Server**, rellenar:
-	- Host: `ldap`
-	- Port: `389`
-	- Use StartTLS support: desactivado
-	- User DN: `cn=admin,dc=practica1,dc=org`
-	- Password: valor de `LDAP_ADMIN_PASSWORD`
-	- One Base DN per line: `dc=practica1,dc=org`
-	- Manually enter LDAP filters: desactivado
-
-5. Pulsar **Continue**.
-
-6. En **Login Attributes**, usar `uid` como atributo de login (LDAP/AD Username).
-
-7. Guardar configuracion y validar conectividad desde la propia pantalla LDAP (estado sin errores).
-
-8. Cerrar sesion de admin y probar inicio con usuarios LDAP:
-	- `ana` / `ana12345`
-	- `luis` / `luis12345`
-
-Notas de verificacion:
-
-- Si en Users solo aparece `admin`, es normal antes de activar/configurar LDAP o antes del primer login de usuarios LDAP.
-- Si no aparece la seccion LDAP en la web, se puede habilitar por CLI:
-
-```bash
-podman exec -u www-data cc-owncloud occ app:enable user_ldap
-podman exec -u www-data cc-owncloud occ app:list | grep user_ldap
-```
-
-### Persistencia de datos
-
-La persistencia se implementa con volumenes nombrados de Podman:
-
-- ldap_database
-- ldap_config
-- mariadb_data
-- owncloud_data
-
-Comprobar volumenes:
-
-```bash
-podman volume ls
-```
-
-Prueba de persistencia:
-
-1. Subir un archivo desde usuario LDAP en OwnCloud.
-2. Reiniciar stack:
-
-```bash
-podman-compose down
-podman-compose up -d
-```
-
-3. Comprobar que el archivo sigue disponible tras reinicio.
-
-### Checklist de verificacion final de la Tarea 1 (Escenario 1)
-
-- [ ] cc-ldap en estado Up (healthy)
-- [ ] cc-db en estado Up (healthy)
-- [ ] cc-redis en estado Up (healthy)
-- [ ] cc-owncloud en estado Up
-- [ ] OU People creada
-- [ ] Usuarios ana y luis creados en LDAP
-- [ ] Login LDAP en OwnCloud operativo
-- [ ] Persistencia verificada tras reinicio
-
-## Tarea 2 - Enunciado y plan de ejecucion
-
-**Enunciado oficial (tarea para maxima puntuacion):**
-
-**2.- Diseno y despliegue de un servicio OwnCloud basado en contenedores, con alta disponibilidad e inspirado en la arquitectura descrita en el Escenario 2. En particular, se requiere que este servicio incluya:**
-
-- Balanceo de carga con HAProxy (u otra herramienta)
-- Servicio web ownCloud
+- Balanceo de carga con HAProxy o equivalente
+- OwnCloud
 - SGBD
 - Redis
 - LDAP
-- Replicacion de, al menos, uno de los microservicios anteriores
+- Replicacion de, al menos, uno de los microservicios
 
-Estado actual de la Tarea 2 en este repositorio:
-
-- Compose dedicado creado: `docker-compose.escenario2.yml`
-- Configuracion de HAProxy lista para balanceo: `deploy/haproxy/haproxy.cfg`
-- Guia de verificacion creada: `VERIFICACION_ESCENARIO2.md`
-
-Siguiente paso operativo para Tarea 2:
-
-1. Levantar escenario 2 con `podman-compose -p cc-s2 -f docker-compose.escenario2.yml up -d`.
-2. Verificar backends `oc1` y `oc2` en stats de HAProxy.
-3. Validar login LDAP y persistencia tambien a traves del frontend de HAProxy.
-
-## Tarea 3 - Guia paso a paso (docker-compose y Kubernetes)
-
-**Enunciado oficial:**
-
-**3.- Diseno y despliegue de la tarea 1 o 2 utilizando docker (docker-compose) y kubernetes.**
-
-### Decision de arquitectura para Tarea 3
-
-Para maximizar la puntuacion, esta guia parte del Escenario 2 (HAProxy + replica de ownCloud) y lo despliega en dos tecnologias:
-
-1. docker-compose (base de referencia funcional).
-2. Kubernetes (equivalente orquestado).
-
-### Objetivo tecnico de la guia
-
-- Repetir el mismo servicio con los mismos componentes: ownCloud, MariaDB, Redis, LDAP y HAProxy.
-- Mantener el rango de puertos asignado en servidor (20000-20010) para acceso externo.
-- Obtener evidencias reproducibles de despliegue, salud y pruebas funcionales.
-
-### Estructura de ficheros usada en Tarea 3
+### Ficheros asociados
 
 - `docker-compose.escenario2.yml`
 - `deploy/haproxy/haproxy.cfg`
-- `deploy/ldap/01-ou-people.ldif`
-- `deploy/ldap/02-user-ana.ldif`
-- `deploy/ldap/03-user-luis.ldif`
-- `kubernetes/escenario2/00-namespace.yaml`
-- `kubernetes/escenario2/01-secret.yaml`
-- `kubernetes/escenario2/02-configmap.yaml`
-- `kubernetes/escenario2/03-pvc.yaml`
-- `kubernetes/escenario2/04-mariadb.yaml`
-- `kubernetes/escenario2/05-redis.yaml`
-- `kubernetes/escenario2/06-ldap.yaml`
-- `kubernetes/escenario2/07-ldap-seed-job.yaml`
-- `kubernetes/escenario2/08-owncloud.yaml`
-- `kubernetes/escenario2/09-haproxy.yaml`
 
-### Fase A - Despliegue con docker-compose (referencia)
+### Puertos del escenario 2
 
-#### A.1. Preparacion
+Segun `deploy/compose/.env`:
+
+- `20003`: frontend web por HAProxy
+- `20004`: panel de estadisticas de HAProxy
+
+### Arranque
+
 
 ```bash
-cp deploy/compose/.env.example deploy/compose/.env
+podman-compose --env-file deploy/compose/.env -f docker-compose.escenario2.yml up -d
 ```
 
-Revisar valores minimos:
-
-- `OWNCLOUD_DOMAIN`
-- `OWNCLOUD_TRUSTED_DOMAINS`
-- `OWNCLOUD_ADMIN_USER`
-- `OWNCLOUD_ADMIN_PASSWORD`
-- `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`
-- `LDAP_ADMIN_PASSWORD`
-
-#### A.2. Arranque de Escenario 2
+### Verificacion
 
 ```bash
-podman-compose -p cc-s2 -f docker-compose.escenario2.yml up -d
 podman ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 
-#### A.3. Comprobaciones minimas
+Elementos esperados:
+
+- `cc-haproxy`
+- `cc-owncloud`
+- `cc-owncloud2`
+- `cc-db`
+- `cc-redis`
+- `cc-ldap`
+
+Pruebas funcionales:
+
+1. Abre OwnCloud por HAProxy en `http://localhost:20003`.
+2. Abre las estadisticas en `http://localhost:20004`.
+3. Comprueba que aparecen dos backends en estado UP.
+4. Inicia sesion con `ana` o `luis`.
+5. Sube un archivo y reinicia el stack.
+6. Comprueba que el archivo sigue disponible.
+
+### Persistencia y replica
+
+El escenario 2 reutiliza el volumen compartido de OwnCloud y replica el servicio web en dos instancias. La verificacion detallada esta en `VERIFICACION_ESCENARIO2.md`.
+
+## Tarea 3 - Guia de reproduccion equivalente
+
+El enunciado pide una version equivalente con docker-compose y Kubernetes. En esta copia (`cc-p1`) quedan documentados el escenario base y el escenario con HAProxy en compose. La parte Kubernetes se ejecuta sobre la copia que si incluye los manifiestos (`kubernetes/escenario2`).
+
+### Objetivo de la parte Kubernetes
+
+Reproducir el Escenario 2 con los mismos componentes:
+
+- ownCloud
+- MariaDB
+- Redis
+- LDAP
+- HAProxy
+- Replica de ownCloud (2 pods)
+
+### Equivalencia compose -> Kubernetes
+
+- Servicio `owncloud` y `owncloud2` en compose -> Deployment `owncloud` con `replicas: 2`.
+- `db`, `redis`, `ldap` -> Deployments + Services internos.
+- `haproxy` -> Deployment + Service de exposicion externa.
+- Volumenes de compose -> PVC para persistencia.
+- LDIF y configuracion HAProxy -> ConfigMap + Job de inicializacion LDAP.
+
+### Flujo recomendado en Kubernetes (copia con manifiestos)
+
+1. Arrancar Minikube con rango de NodePort permitido:
 
 ```bash
-podman logs --tail 100 cc-haproxy
-podman logs --tail 100 cc-owncloud
-podman logs --tail 100 cc-owncloud2
+minikube start --driver=podman --container-runtime=containerd \
+   --extra-config=apiserver.service-node-port-range=20000-20010
 ```
 
-Validar:
-
-- Frontend ownCloud por HAProxy en puerto `20003`.
-- Stats de HAProxy en puerto `20004`.
-- Login con usuario LDAP (`ana` o `luis`).
-
-### Fase B - Despliegue equivalente en Kubernetes
-
-#### B.1. Preparacion del cluster (Minikube)
-
-```bash
-minikube delete -p minikube --all --purge
-minikube config set rootless true
-minikube start -p minikube --driver=podman --container-runtime=containerd \
-	--extra-config=apiserver.service-node-port-range=20000-20010
-minikube kubectl -- get nodes
-```
-
-Nota: si `kubectl` no esta en PATH, utilizar siempre `minikube kubectl --`.
-
-Nota breve importante: para exponer HAProxy exactamente en 20003 y 20004 solo con manifiestos, el cluster debe arrancarse con el rango `service-node-port-range=20000-20010`.
-
-#### B.2. Aplicacion de manifiestos
-
-Desde la raiz del repo:
+2. Aplicar manifiestos:
 
 ```bash
 minikube kubectl -- apply -f kubernetes/escenario2/00-namespace.yaml
@@ -471,7 +308,7 @@ minikube kubectl -- apply -f kubernetes/escenario2/08-owncloud.yaml
 minikube kubectl -- apply -f kubernetes/escenario2/09-haproxy.yaml
 ```
 
-#### B.3. Verificacion de estado
+3. Verificar estado:
 
 ```bash
 minikube kubectl -- -n cc-practica1 get pods
@@ -480,108 +317,164 @@ minikube kubectl -- -n cc-practica1 get jobs
 minikube kubectl -- -n cc-practica1 get endpoints owncloud
 ```
 
-Resultado esperado:
+4. Validar acceso funcional:
 
-- `ldap`, `mariadb`, `redis`, `owncloud`, `haproxy` en `Running`.
-- `ldap-seed` en `Completed`.
-- `endpoints owncloud` con IP interna y puerto `8080`.
+- `http://docker.ugr.es:20003` (ownCloud via HAProxy)
+- `http://docker.ugr.es:20004` (stats HAProxy)
+- Login LDAP con `ana` y `luis`.
 
-#### B.4. Acceso externo en rango permitido
-
-En Kubernetes, el endpoint `10.x.x.x:8080` es interno del cluster.
-El acceso desde fuera debe hacerse por el Service de HAProxy (NodePort) en los puertos del rango asignado:
-
-- ownCloud: `http://docker.ugr.es:20003`
-- stats HAProxy: `http://docker.ugr.es:20004`
-
-Comprobar que el Service publica esos puertos:
-
-```bash
-minikube kubectl -- -n cc-practica1 get svc haproxy -o wide
-```
-
-#### B.5. Escalado de ownCloud (replicacion)
-
-Una vez estable la replica inicial:
-
-```bash
-minikube kubectl -- -n cc-practica1 scale deployment owncloud --replicas=2
-minikube kubectl -- -n cc-practica1 get pods -l app=owncloud -w
-```
-
-### Fase C - Validacion funcional de entrega
-
-#### C.1. Prueba LDAP
-
-```bash
-minikube kubectl -- -n cc-practica1 exec deploy/ldap -- \
-	ldapsearch -x -H ldap://127.0.0.1:389 -b dc=practica1,dc=org '(uid=ana)'
-```
-
-#### C.2. Prueba web
-
-1. Abrir ownCloud por HAProxy (`20003`).
-2. Iniciar sesion con usuario LDAP.
-3. Subir un fichero de prueba.
-
-#### C.3. Prueba de persistencia
+5. Validar persistencia:
 
 ```bash
 minikube kubectl -- -n cc-practica1 rollout restart deployment owncloud
 minikube kubectl -- -n cc-practica1 get pods -l app=owncloud -w
 ```
 
-Comprobar que el fichero de prueba sigue disponible.
+Comprobar que los ficheros subidos siguen presentes tras reinicio.
 
-### Fase D - Checklist final Tarea 3
+### Comandos utiles en Kubernetes
 
-- [ ] Escenario 2 operativo en docker-compose.
-- [ ] Escenario equivalente desplegado en Kubernetes.
-- [ ] LDAP sembrado y usuarios visibles.
-- [ ] ownCloud accesible por HAProxy en puerto externo permitido.
-- [ ] Replica ownCloud creada (2 pods).
-- [ ] Login LDAP validado en ownCloud.
-- [ ] Persistencia validada tras reinicio de pods.
-- [ ] Evidencias (salidas, logs y capturas) recopiladas para entrega.
-
-### Fase E - Recuperacion rapida ante incidencias comunes
-
-1. API de Kubernetes rechaza conexion:
+#### Estado rapido del namespace
 
 ```bash
-minikube status
-minikube start -p minikube --driver=podman --container-runtime=containerd
-minikube update-context -p minikube
+minikube kubectl -- -n cc-practica1 get pods
+minikube kubectl -- -n cc-practica1 get svc
+minikube kubectl -- -n cc-practica1 get jobs
+minikube kubectl -- -n cc-practica1 get endpoints owncloud
 ```
 
-2. Job `ldap-seed` no se actualiza por inmutabilidad:
+#### Logs de diagnostico
+
+```bash
+minikube kubectl -- -n cc-practica1 logs deploy/owncloud
+minikube kubectl -- -n cc-practica1 logs deploy/ldap
+minikube kubectl -- -n cc-practica1 logs deploy/mariadb
+minikube kubectl -- -n cc-practica1 logs deploy/redis
+minikube kubectl -- -n cc-practica1 logs deploy/haproxy
+minikube kubectl -- -n cc-practica1 logs job/ldap-seed
+```
+
+#### Reinicios y recuperacion
+
+```bash
+minikube kubectl -- -n cc-practica1 rollout restart deployment owncloud
+minikube kubectl -- -n cc-practica1 rollout restart deployment ldap
+minikube kubectl -- -n cc-practica1 rollout restart deployment mariadb
+minikube kubectl -- -n cc-practica1 rollout restart deployment redis
+minikube kubectl -- -n cc-practica1 rollout restart deployment haproxy
+```
+
+Si el job de sembrado LDAP necesita volver a ejecutarse:
 
 ```bash
 minikube kubectl -- -n cc-practica1 delete job ldap-seed
 minikube kubectl -- apply -f kubernetes/escenario2/07-ldap-seed-job.yaml
 ```
 
-3. NodePort fuera de rango en API server:
+#### Problemas frecuentes en Kubernetes
+
+1. El NodePort no abre en el puerto esperado:
 
 ```bash
-minikube delete -p minikube --all --purge
-minikube start -p minikube --driver=podman --container-runtime=containerd \
-	--extra-config=apiserver.service-node-port-range=20000-20010
+minikube kubectl -- -n cc-practica1 get svc haproxy -o wide
+minikube kubectl -- -n cc-practica1 describe svc haproxy
+```
+
+2. Los pods no arrancan o quedan en Pending:
+
+```bash
+minikube kubectl -- -n cc-practica1 describe pod <nombre-del-pod>
+minikube kubectl -- -n cc-practica1 get events --sort-by=.metadata.creationTimestamp
+```
+
+3. LDAP no devuelve usuarios:
+
+```bash
+minikube kubectl -- -n cc-practica1 exec deploy/ldap -- ldapsearch -x -H ldap://127.0.0.1:389 -b dc=practica1,dc=org
+minikube kubectl -- -n cc-practica1 logs job/ldap-seed
+```
+
+
+## Comandos utiles (logs y troubleshooting)
+
+### Logs rapidos
+
+```bash
+podman logs --tail 120 cc-owncloud
+podman logs --tail 120 cc-owncloud2
+podman logs --tail 120 cc-db
+podman logs --tail 120 cc-ldap
+podman logs --tail 120 cc-redis
+podman logs --tail 120 cc-haproxy
+```
+
+### Estado y puertos
+
+```bash
+podman ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+cd deploy/compose
+podman-compose --env-file .env ps
+```
+
+### Reinicio controlado
+
+Escenario 1:
+
+```bash
+cd deploy/compose
+podman-compose --env-file .env down
+podman-compose --env-file .env up -d
+```
+
+Escenario 2:
+
+```bash
+podman-compose --env-file deploy/compose/.env -f docker-compose.escenario2.yml down
+podman-compose --env-file deploy/compose/.env -f docker-compose.escenario2.yml up -d
+```
+
+### Problemas frecuentes y solucion
+
+1. OwnCloud no abre en el navegador:
+
+```bash
+curl -v http://localhost:20000
+podman logs --tail 120 cc-owncloud
+```
+
+2. Error de login LDAP:
+
+```bash
+podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b dc=practica1,dc=org
+podman logs --tail 120 cc-ldap
+```
+
+3. HAProxy no reparte o stats vacias:
+
+```bash
+podman logs --tail 120 cc-haproxy
+curl -v http://localhost:20004
+```
+
+4. Reinicio total dejando datos:
+
+```bash
+cd deploy/compose
+podman-compose --env-file .env down
+podman-compose --env-file .env up -d
 ```
 
 ## Conclusiones
 
-Se ha completado y validado la Tarea 1 (Escenario 1) con Podman y podman-compose en un entorno sin privilegios de administrador. El uso de volumenes nombrados evita problemas de permisos en host y mantiene persistencia en LDAP, MariaDB y ownCloud. La autenticacion LDAP queda integrada y validada con usuarios reales del directorio.
+La práctica se ha realizado teniendo en cuenta la parte de reutilización. Es decir, he intentado utilizar siempre que podía los mismos archivos de configuración para que sea sencillo pasar de un escenario a otro y además, incluir la parte de Kubernetes. Cabe destacar, que con el entorno más limitado, algunas cosas costaban un poco más de realizar, pero lo más complejo ha sido lidiar con configuraciones antiguas qué provocaban errores ya qué por defecto, no se eliminaban. 
 
-Ademas, el repositorio ya incluye la base tecnica para continuar con la Tarea 2 (escenario de alta disponibilidad con HAProxy y replica) y un plan de trabajo para abordar la Tarea 3 en docker-compose y Kubernetes.
+## Referencias
 
-## Referencias bibliograficas y recursos utilizados
-
-- Enunciado oficial de la practica (ENUNCIADO.MD)
+- ENUNCIADO.MD
 - OpenLDAP Admin Guide: https://www.openldap.org/doc/admin26/quickstart.html
 - osixia/openldap: https://github.com/osixia/docker-openldap
 - OwnCloud LDAP: https://doc.owncloud.com/server/next/admin_manual/configuration/user/user_auth_ldap.html
-- Nextcloud LDAP (referencia conceptual): https://docs.nextcloud.com/server/22/admin_manual/configuration_user/user_auth_ldap.html
 - MariaDB image docs: https://hub.docker.com/_/mariadb
 - Redis docs: https://redis.io/docs/
 - HAProxy docs: http://docs.haproxy.org/2.6/intro.html
+- GitHub Copilot (Revisión de yml + documentación + afinar comandos)

@@ -18,7 +18,7 @@ run_compose() {
 cd "$COMPOSE_DIR"
 
 if [ ! -f .env ]; then
-	echo "[ERROR] Falta deploy/compose/.env. Crea el archivo desde .env.example."
+	echo "[ERROR] Falta deploy/compose/.env. Crea ese archivo antes de ejecutar la verificacion."
 	exit 1
 fi
 
@@ -31,4 +31,4 @@ curl -fsS "http://localhost:${OWNCLOUD_PORT}" >/dev/null && echo "[OK] OwnCloud 
 
 echo ""
 echo "[INFO] Probe LDAP interno"
-podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b dc=example,dc=org >/dev/null && echo "[OK] LDAP responde" || echo "[WARN] LDAP no responde aun"
+podman exec cc-ldap ldapsearch -x -H ldap://localhost:389 -b dc=practica1,dc=org >/dev/null && echo "[OK] LDAP responde" || echo "[WARN] LDAP no responde aun"
