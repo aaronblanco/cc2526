@@ -394,6 +394,15 @@ minikube kubectl -- -n cc-practica1 exec deploy/ldap -- ldapsearch -x -H ldap://
 minikube kubectl -- -n cc-practica1 logs job/ldap-seed
 ```
 
+4. Quiero limpiar contenedores viejos antes de volver a probar con Podman:
+
+```bash
+podman ps -a
+podman rm -f cc-ldap cc-db cc-redis cc-owncloud cc-owncloud2 cc-haproxy
+```
+
+Esto sirve si arrastras contenedores de pruebas anteriores y quieres dejar el entorno limpio antes de levantar otra vez el escenario con `podman-compose`.
+
 
 ## Comandos utiles (logs y troubleshooting)
 
